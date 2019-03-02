@@ -3,6 +3,10 @@ import os, shutil, sys, zipfile
 from docx import Document
 from PIL import Image
 from docs import begin_storage
+from docs import download_docs
+from docs import get_folder_id_by_name
+from docs import get_service
+from docs import store_doc
 
 if len(sys.argv) == 2 and str(sys.argv[1]) == "help":
 	print("Unlimited Google Drive Storage\n")
@@ -11,7 +15,7 @@ if len(sys.argv) == 2 and str(sys.argv[1]) == "help":
 	print("download <file path> - Downloads specified file to Google Drive")
 elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 	# 1.) Create Google Drive folder
-	begin_storage(str(sys.argv[2]))
+	driveConnect, dirId = begin_storage(str(sys.argv[2]))
 	# 2.) Get file byte size
 	fileSize = os.path.getsize(sys.argv[2])
 	# 3.) Loop through the file to read it and get bitmaps (waiting on Noah's C)
@@ -21,7 +25,8 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 	doc.add_picture("tmp.png")
 	doc.save("tmp.docx")
 	os.remove("tmp.png") # 3.4.) Delete "tmp.png"
-	# 	3.5.) Upload Word document to Google Drive (to the native Docs format, waiting on Steven)
+	# 3.5.) Upload Word document to Google Drive
+	store_doc(driveConnect, dirId, "tmp.docx")
 	os.remove("tmp.docx") # 3.6.) Delete the Word document
 elif len(sys.argv) == 3 and str(sys.argv[1]) == "download":
 	# 1.) Get file count in given folder in Google Drive (waiting on Steven)
