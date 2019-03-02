@@ -1,5 +1,8 @@
-# Ignore pycache
+# Ignore "pycache" directory
 __pycache__/
 
-# Ignore "wordReaderWriter.pyc"
-wordReaderWriter.pyc
+# Ignore "tmp" directory
+tmp/
+
+# Ignore "unlimited-drive.pyc" file
+unlimited-drive.pyc
