@@ -61,9 +61,9 @@ def create_folder(service, file_path):
     return folder.get('id')
 
 #Stores a file into a folder
-def store_doc(service, folderId, file_path):
+def store_doc(service, folderId, file_name, file_path):
     file_metadata = {
-    'name': file_path,
+    'name': file_name,
     'mimeType': 'application/vnd.google-apps.document',
     'parents': [folderId]
     }
@@ -99,7 +99,7 @@ def list_files(service):
 #Downloads documents from a specified folder into a target folder
 def download_docs(service, folderId, targetFolder):
     query = "'" +folderId + "' in parents"
-    results = service.files().list(q=query, fields='files(id, name, parents)').execute()
+    results = service.files().list(q=query, fields='files(id, name)').execute()
     files = results.get('files', []) #grabs all of the files from the folder
 
     total = len(files)
@@ -107,7 +107,7 @@ def download_docs(service, folderId, targetFolder):
     for file in files:
         print('Downloading file ', count, ' of ', total)
         request = service.files().export_media(fileId=file['id'], mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-        fh = io.FileIO(targetFolder +'/new' +file['name'] + '.docx', 'wb')
+        fh = io.FileIO(targetFolder +file['name'] + '.docx', 'wb')
         downloader = MediaIoBaseDownload(fh, request)
         done = False
         while done is False:
@@ -124,7 +124,7 @@ if __name__ == '__main__':
  
     #count = file_count(service, folderId)
     #print('Total files: ', count)
-
+    #service = get_service()
     #download_docs(service, folderId, 'C:/Users/chick/Desktop/tmp') #The target folder would be determined by the program, I imagine
-    service = get_service()
+    
     list_files(service)
