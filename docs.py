@@ -87,26 +87,33 @@ def file_count(service, folderId):
     files = results.get('files', [])
     return len(files)
 
-def download_docs(service, folderId, file_Id):
-    #query = "'" +folderId + "' in parents"
-    #results = service.files().list(q=query, fields='files(id, name, parents)').execute()
-    #files = results.get('files', [])
-    
-    #for file in files:
-    request = service.files().export_media(fileId=file_Id, mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-    fh = io.FileIO('downloaded_File', 'wb')
-    downloader = MediaIoBaseDownload(fh, request)
-    done = False
-    while done is False:
-        status, done = downloader.next_chunk()
-        print ("Download %d%%." % int(status.progress() * 100))
+#Downloads documents from a specified folder into a target folder
+def download_docs(service, folderId, targetFolder):
+    query = "'" +folderId + "' in parents"
+    results = service.files().list(q=query, fields='files(id, name, parents)').execute()
+    files = results.get('files', []) #grabs all of the files from the folder
 
+    total = len(files)
+    count = 1
+    for file in files:
+        print('Downloading file ', count, ' of ', total)
+        request = service.files().export_media(fileId=file['id'], mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+        fh = io.FileIO(targetFolder +'/new' +file['name'] + '.docx', 'wb')
+        downloader = MediaIoBaseDownload(fh, request)
+        done = False
+        while done is False:
+            status, done = downloader.next_chunk()
+            print ("Download %d%%." % int(status.progress() * 100))
+        count =  count+1
+
+#Tester method that does tha following: Uploads 3 docx files into a generated folder, prints the file count, then downloads them into a specified target folder
 if __name__ == '__main__':
-    #service, folderId = begin_storage('example/path') #The real pathname will go here, of course
-    #store_doc(service, folderId, 'testdoc1.docx')
-    #store_doc(service, folderId, 'testdoc2.docx')
-    #store_doc(service, folderId, 'testdoc3.docx')
+    service, folderId = begin_storage('example/path') #The real pathname will go here, of course
+    store_doc(service, folderId, 'testdoc1.docx')
+    store_doc(service, folderId, 'testdoc2.docx')
+    store_doc(service, folderId, 'testdoc3.docx')
  
-    #count = file_count(service, folderId)
-    service = get_service()
-    download_docs(service, '1oYx-FHgyC2mCLXav7ZDYjUm8PAdzxwus', '1nWH-TxP9sMQFr3yYhzzqEGfifaHP9H3iY6CNWuUtSp4')
+    count = file_count(service, folderId)
+    print('Total files: ', count)
+
+    download_docs(service, folderId, 'C:/Users/Esteban/Desktop/tmp') #The target folder would be determined by the program, I imagine
