@@ -3,6 +3,3 @@ __pycache__/
 
 # Ignore "wordReaderWriter.pyc"
 wordReaderWriter.pyc
-
-# Ignore token.pickle
-token.pickle
