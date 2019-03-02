@@ -87,6 +87,14 @@ def file_count(service, folderId):
     files = results.get('files', [])
     return len(files)
 
+def list_files:
+    results = service.files().list(mimeType='application/vnd.google-apps.folder', fields="nextPageToken, files(id, name)").execute()
+    folders = results.get('files', [])
+    
+    print('Folder List')
+    for folder in folders:
+        print('folder.get('name') + '(ID: ' +folder.get('id') + ')')
+
 #Downloads documents from a specified folder into a target folder
 def download_docs(service, folderId, targetFolder):
     query = "'" +folderId + "' in parents"
@@ -113,7 +121,8 @@ if __name__ == '__main__':
     store_doc(service, folderId, 'testdoc2.docx')
     store_doc(service, folderId, 'testdoc3.docx')
  
-    count = file_count(service, folderId)
-    print('Total files: ', count)
+    #count = file_count(service, folderId)
+    #print('Total files: ', count)
 
-    download_docs(service, folderId, 'C:/Users/chick/Desktop/tmp') #The target folder would be determined by the program, I imagine
+    #download_docs(service, folderId, 'C:/Users/chick/Desktop/tmp') #The target folder would be determined by the program, I imagine
+    list_files()
