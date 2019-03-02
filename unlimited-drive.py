@@ -16,7 +16,7 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 	fileSize = os.path.getsize(sys.argv[2])
 	# 3.) Loop through the file to read it and get bitmaps (waiting on Noah's C)
 	#	3.1.) Get bitmap data and convert it to PNG saved on disk.
-	Image.open("test-bitmap.bmp").save("tmp.png") # 3.2.) For now we are using "test-bitmap.bmp" but we will want to use Noah's data instead
+	Image.open("./testfiles/test-bitmap.bmp").save("tmp.png") # 3.2.) For now we are using "test-bitmap.bmp" but we will want to use Noah's data instead
 	doc = Document() # 3.3.) Generate a Word document containing the PNG.
 	doc.add_picture("tmp.png")
 	doc.save("tmp.docx")
