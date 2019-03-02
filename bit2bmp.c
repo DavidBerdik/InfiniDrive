@@ -72,9 +72,8 @@ int main(int argc, char ** argv) {
         write_header(source_len / 4 / 5, 5);
     }
 
-    while ((in = fgetc(source)) != EOF) {
+    while ((in = fgetc(source)) != EOF && in_total++ < source_len) {
         putchar(in);
-        ++in_total;
     }
     while (in_total++ < source_len) putchar(0);
 
