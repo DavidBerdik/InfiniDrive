@@ -99,7 +99,7 @@ def list_files(service):
 #Downloads documents from a specified folder into a target folder
 def download_docs(service, folderId, targetFolder):
     query = "'" +folderId + "' in parents"
-    results = service.files().list(q=query, fields='files(id, name)').execute()
+    results = service.files().list(q=query, fields='files(id, name, parents)').execute()
     files = results.get('files', []) #grabs all of the files from the folder
 
     total = len(files)
@@ -107,7 +107,7 @@ def download_docs(service, folderId, targetFolder):
     for file in files:
         print('Downloading file ', count, ' of ', total)
         request = service.files().export_media(fileId=file['id'], mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-        fh = io.FileIO(targetFolder +file['name'] + '.docx', 'wb')
+        fh = io.FileIO(targetFolder +'/' +file['name'] + '.docx', 'wb')
         downloader = MediaIoBaseDownload(fh, request)
         done = False
         while done is False:
@@ -117,14 +117,14 @@ def download_docs(service, folderId, targetFolder):
 
 #Tester method
 if __name__ == '__main__':
-    #service, folderId = begin_storage('example/path') #The real pathname will go here, of course
-    #store_doc(service, folderId, './testfiles/testdoc1.docx')
-    #store_doc(service, folderId, './testfiles/testdoc2.docx')
-    #store_doc(service, folderId, './testfiles/testdoc3.docx')
+    service, folderId = begin_storage('example/path') #The real pathname will go here, of course
+    store_doc(service, folderId, 'file1', './testfiles/testdoc1.docx')
+    store_doc(service, folderId, 'file2', './testfiles/testdoc2.docx')
+    store_doc(service, folderId, 'file3', './testfiles/testdoc3.docx')
  
     #count = file_count(service, folderId)
     #print('Total files: ', count)
     #service = get_service()
-    #download_docs(service, folderId, 'C:/Users/chick/Desktop/tmp') #The target folder would be determined by the program, I imagine
+    download_docs(service, folderId, 'C:/Users/chick/Desktop/tmp') #The target folder would be determined by the program, I imagine
     
-    list_files(service)
+    #list_files(service)
