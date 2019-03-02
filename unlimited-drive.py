@@ -4,7 +4,6 @@ from docx import Document
 from PIL import Image
 from docs import begin_storage
 from docs import download_docs
-from docs import get_folder_id_by_name
 from docs import get_service
 from docs import store_doc
 
