@@ -46,17 +46,6 @@ def get_service():
     #results = service.files().list(
     #    pageSize=10, fields="nextPageToken, files(id, name)").execute()
     #items = results.get('files', [])
-    
-
-    #LISTS ITEMS#
-    #if not items:
-    #    print('No files found.')
-    #else:
-    #    print('Files:')
-    #    for item in items:
-    #        print(u'{0} ({1})'.format(item['name'], item['id']))
-	    #Deletes things
-            #service.files().delete(fileId=item['id']).execute()
 
 #Creates a folder and returns its ID
 def create_folder(service, file_path):
@@ -88,10 +77,19 @@ def begin_storage(file_path):
     service = get_service()
     folderId = create_folder(service, file_path)
     return service, folderId
-    
+
+#Returns the number of files in a folder    
+def file_count(service, folderId):
+    query = "'" +folderId + "' in parents"
+    results = service.files().list(q=query, fields='files(id, name, parents)').execute()
+    files = results.get('files', [])
+    return len(files)
 
 if __name__ == '__main__':
-    service, folderId = begin_storage('example/path')
-    store_doc(service, folderId, 'testdoc1.docx')
-    store_doc(service, folderId, 'testdoc2.docx')
-    store_doc(service, folderId, 'testdoc3.docx')
+    service, folderId = begin_storage('example/path') #The real pathname will go here, of course
+    #store_doc(service, folderId, 'testdoc1.docx')
+    #store_doc(service, folderId, 'testdoc2.docx')
+    #store_doc(service, folderId, 'testdoc3.docx')
+
+    count = file_count(service, folderId)
+    #print (count)
