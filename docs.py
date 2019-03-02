@@ -111,14 +111,14 @@ def download_docs(service, folderId, targetFolder):
 
 #Tester method
 if __name__ == '__main__':
-    #service, folderId = begin_storage('exampleFolder') #The real pathname will go here, of course
-    #store_doc(service, folderId, 'bigfile', 'C:/Users/chick/Desktop/bigfile.docx')
+    #service, folderId = begin_storage('examplefolder') #The real pathname will go here, of course
+    #store_doc(service, folderId, 'file1', './testfiles/testdoc1.docx')
     #store_doc(service, folderId, 'file2', './testfiles/testdoc2.docx')
     #store_doc(service, folderId, 'file3', './testfiles/testdoc3.docx')
  
     #count = file_count(service, folderId)
     #print('Total files: ', count)
     #service = get_service()
-    #download_docs(service, '1IFhVKgsu_unzPWZAKkSoiOAVoRJH_N_P', 'C:/Users/chick/Desktop/tmp') #The target folder would be determined by the program, I imagine
+    #download_docs(service, folderId, 'your_path_here') #The target folder would be determined by the program, I imagine
     
     #list_files(service)
