@@ -76,7 +76,7 @@ int main(int argc, char ** argv) {
         putchar(in);
         ++in_total;
     }
-    while (in_total++ < source_len) putchar(0xFF);
+    while (in_total++ < source_len) putchar(0);
 
     return 0;
 }

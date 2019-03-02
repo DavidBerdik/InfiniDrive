@@ -44,20 +44,34 @@ elif len(sys.argv) == 2 and str(sys.argv[1]) == "list":
 	list_files(get_service())
 elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 	# Download all files from the Google Drive folder
-	download_docs(get_service(), str(sys.argv[2]), "./testfiles")
-	
-	# 	2.1.) For now, we are unzipping the temp docx but that will change once Steven's code is done.
-	os.rename("tmp.docx","tmp.zip")
-	zipRef = zipfile.ZipFile("tmp.zip", 'r')
-	zipRef.extractall("tmp")
-	zipRef.close()
-	os.remove("tmp.zip")
-	#	2.2.) Convert the PNG back to BMP and save.
-	Image.open("./tmp/word/media/image1.png").save("tmp.bmp")
-	#	2.3.) Delete the unzipped folder
-	shutil.rmtree("./tmp")
-	#	2.4.) Write the data stored in the BMP to the file we are downloading
-	#	2.5.) Delete the temporary BMP
-	os.remove("tmp.bmp")
+	download_docs(get_service(), str(sys.argv[2]), "./dltemp")
+    result_name = raw_input("Enter filename to save as: ") or "mydownload.bin"
+    result = open("./dltemp/" + result_name, "wb")
+
+    for filename in os.listdir("./dltemp"):
+        # 	2.1.) For now, we are unzipping the temp docx but that will change once Steven's code is done.
+        zipname = filename.replace("docx", "zip")
+        dirname = zipname.replace("zip", "")
+        bmpname = dirname + ".bmp"
+
+        os.rename(filename, zipname)
+        zipRef = zipfile.ZipFile(zipname, 'r')
+        zipRef.extractall(dirname)
+        zipRef.close()
+        os.remove(zipname)
+        #	2.2.) Convert the PNG back to BMP and save.
+        Image.open("./" + dirname + "/word/media/image1.png").save(bmpname)
+        #	2.3.) Delete the unzipped folder
+        shutil.rmtree("./" + dirname)
+        #	2.4.) Write the data stored in the BMP to the file we are downloading
+        bfile = open(bmpname, "rb")
+        bdata = bytearray(bfile.read())
+        result.write(bdata[54:]
+        bfile.close()
+        #	2.5.) Delete the temporary BMP
+        os.remove(bmpname)
+        os.remove(dirname)
+
+    result.close()
 else:
 	print("Error: Invalid command line arguments (use help to display help)")
