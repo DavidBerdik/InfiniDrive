@@ -5,6 +5,7 @@ from PIL import Image
 from docs import begin_storage
 from docs import download_docs
 from docs import get_service
+from docs import list_files
 from docs import store_doc
 
 if len(sys.argv) == 2 and str(sys.argv[1]) == "help":
@@ -29,7 +30,7 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 	store_doc(driveConnect, dirId, "tmp.docx")
 	os.remove("tmp.docx") # 3.6.) Delete the Word document
 elif len(sys.argv) == 2 and str(sys.argv[1]) == "list":
-	print("Waiting on Steven here")
+	list_files(get_service())
 elif len(sys.argv) == 3 and str(sys.argv[1]) == "download":
 	# 1.) Get file count in given folder in Google Drive (waiting on Steven)
 	# 2.) Iterate through and download all docx files
