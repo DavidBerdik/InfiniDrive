@@ -43,12 +43,6 @@ def get_service():
     service = build('drive', 'v3', credentials=creds)
     return service
 
-    #GRABS FIRST 10 ITEMS#
-    # Call the Drive v3 API
-    #results = service.files().list(
-    #    pageSize=10, fields="nextPageToken, files(id, name)").execute()
-    #items = results.get('files', [])
-
 #Creates a folder and returns its ID
 def create_folder(service, file_path):
     folder_metadata = {
@@ -87,9 +81,9 @@ def file_count(service, folderId):
     files = results.get('files', [])
     return len(files)
 
-#Lists folders and their IDs
+#Lists folders and their IDs (excluding folders in Trash)
 def list_files(service):
-    results = service.files().list(q="mimeType='application/vnd.google-apps.folder'", fields="nextPageToken, files(id, name)").execute()
+    results = service.files().list(q="(mimeType='application/vnd.google-apps.folder') and (trashed=False)", fields="nextPageToken, files(id, name)").execute()
     folders = results.get('files', [])
     
     print('Folder List')
@@ -99,7 +93,7 @@ def list_files(service):
 #Downloads documents from a specified folder into a target folder
 def download_docs(service, folderId, targetFolder):
     query = "'" +folderId + "' in parents"
-    results = service.files().list(q=query, fields='files(id, name, parents)').execute()
+    results = service.files().list(q=query, fields='files(id, name)').execute()
     files = results.get('files', []) #grabs all of the files from the folder
 
     total = len(files)
@@ -117,14 +111,14 @@ def download_docs(service, folderId, targetFolder):
 
 #Tester method
 if __name__ == '__main__':
-    service, folderId = begin_storage('example/path') #The real pathname will go here, of course
-    store_doc(service, folderId, 'file1', './testfiles/testdoc1.docx')
-    store_doc(service, folderId, 'file2', './testfiles/testdoc2.docx')
-    store_doc(service, folderId, 'file3', './testfiles/testdoc3.docx')
+    #service, folderId = begin_storage('examplefolder') #The real pathname will go here, of course
+    #store_doc(service, folderId, 'file1', './testfiles/testdoc1.docx')
+    #store_doc(service, folderId, 'file2', './testfiles/testdoc2.docx')
+    #store_doc(service, folderId, 'file3', './testfiles/testdoc3.docx')
  
     #count = file_count(service, folderId)
     #print('Total files: ', count)
     #service = get_service()
-    download_docs(service, folderId, 'C:/Users/chick/Desktop/tmp') #The target folder would be determined by the program, I imagine
+    #download_docs(service, folderId, 'your_path_here') #The target folder would be determined by the program, I imagine
     
     #list_files(service)
