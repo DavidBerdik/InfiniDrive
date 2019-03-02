@@ -117,9 +117,9 @@ def download_docs(service, folderId, targetFolder):
 #Tester method that does tha following: Uploads 3 docx files into a generated folder, prints the file count, then downloads them into a specified target folder
 if __name__ == '__main__':
     service, folderId = begin_storage('example/path') #The real pathname will go here, of course
-    store_doc(service, folderId, 'testdoc1.docx')
-    store_doc(service, folderId, 'testdoc2.docx')
-    store_doc(service, folderId, 'testdoc3.docx')
+    store_doc(service, folderId, './testfiles/testdoc1.docx')
+    store_doc(service, folderId, './testfiles/testdoc2.docx')
+    store_doc(service, folderId, './testfiles/testdoc3.docx')
  
     #count = file_count(service, folderId)
     #print('Total files: ', count)
