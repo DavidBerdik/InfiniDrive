@@ -11,7 +11,8 @@ if len(sys.argv) == 2 and str(sys.argv[1]) == "help":
 	print("Unlimited Google Drive Storage\n")
 	print("help - Displays this help command.")
 	print("upload <file path> - Uploads specified file to Google Drive")
-	print("download <file path> - Downloads specified file to Google Drive")
+	print("list - Lists the names of all Google Drive folders and their IDs")
+	print("download <folder ID> <file path> - Downloads the contents of the specified folder ID to the specified file path")
 elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 	# 1.) Create Google Drive folder
 	driveConnect, dirId = begin_storage(str(sys.argv[2]))
@@ -27,6 +28,8 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 	# 3.5.) Upload Word document to Google Drive
 	store_doc(driveConnect, dirId, "tmp.docx")
 	os.remove("tmp.docx") # 3.6.) Delete the Word document
+elif len(sys.argv) == 2 and str(sys.argv[1]) == "list":
+	print("Waiting on Steven here")
 elif len(sys.argv) == 3 and str(sys.argv[1]) == "download":
 	# 1.) Get file count in given folder in Google Drive (waiting on Steven)
 	# 2.) Iterate through and download all docx files
