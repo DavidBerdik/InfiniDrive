@@ -1,9 +1,11 @@
 from __future__ import print_function
 import pickle
 import os.path
+import io
 from googleapiclient.discovery import build
 from apiclient import errors
 from apiclient.http import MediaFileUpload
+from apiclient.http import MediaIoBaseDownload
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 
@@ -85,11 +87,26 @@ def file_count(service, folderId):
     files = results.get('files', [])
     return len(files)
 
+def download_docs(service, folderId, file_Id):
+    #query = "'" +folderId + "' in parents"
+    #results = service.files().list(q=query, fields='files(id, name, parents)').execute()
+    #files = results.get('files', [])
+    
+    #for file in files:
+    request = service.files().export_media(fileId=file_Id, mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+    fh = io.FileIO('downloaded_File', 'wb')
+    downloader = MediaIoBaseDownload(fh, request)
+    done = False
+    while done is False:
+        status, done = downloader.next_chunk()
+        print ("Download %d%%." % int(status.progress() * 100))
+
 if __name__ == '__main__':
-    service, folderId = begin_storage('example/path') #The real pathname will go here, of course
+    #service, folderId = begin_storage('example/path') #The real pathname will go here, of course
     #store_doc(service, folderId, 'testdoc1.docx')
     #store_doc(service, folderId, 'testdoc2.docx')
     #store_doc(service, folderId, 'testdoc3.docx')
-
-    count = file_count(service, folderId)
-    #print (count)
+ 
+    #count = file_count(service, folderId)
+    service = get_service()
+    download_docs(service, '1oYx-FHgyC2mCLXav7ZDYjUm8PAdzxwus', '1nWH-TxP9sMQFr3yYhzzqEGfifaHP9H3iY6CNWuUtSp4')
