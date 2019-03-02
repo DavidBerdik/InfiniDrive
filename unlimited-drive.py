@@ -7,6 +7,7 @@ from docs import download_docs
 from docs import get_service
 from docs import list_files
 from docs import store_doc
+from subprocess import check_output
 
 if len(sys.argv) == 2 and str(sys.argv[1]) == "help":
 	print("Unlimited Google Drive Storage\n")
@@ -21,16 +22,24 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 	# Get file byte size
 	fileSize = os.path.getsize(sys.argv[2])
 	
-	# 3.) Loop through the file to read it and get bitmaps (waiting on Noah's C)
-	#	3.1.) Get bitmap data and convert it to PNG saved on disk.
-	Image.open("./testfiles/test-bitmap.bmp").save("tmp.png") # 3.2.) For now we are using "test-bitmap.bmp" but we will want to use Noah's data instead
-	doc = Document() # 3.3.) Generate a Word document containing the PNG.
-	doc.add_picture("tmp.png")
-	doc.save("tmp.docx")
-	os.remove("tmp.png") # 3.4.) Delete "tmp.png"
-	# 3.5.) Upload Word document to Google Drive
-	store_doc(driveConnect, dirId, "1.docx", "tmp.docx")
-	os.remove("tmp.docx") # 3.6.) Delete the Word document
+	# Iterate through file. Noah is writing it to stdout.
+	for x in range(0, fileSize, 5242880):
+		bmpStdOut = check_output(["./bit2bmp", str(sys.argv[2]), x])
+		# Save bitmap
+		f = open('tmp.bmp', 'wb')
+		f.write(bmpStdOut)
+		f.close()
+		# Convert bitmap to PNG
+		Image.open("tmp.bmp").save("tmp.png")
+		os.remove("tmp.bmp")
+		# Generate Word document with PNG in it
+		doc = Document()
+		doc.add_picture("tmp.png")
+		doc.save("tmp.docx")
+		os.remove("tmp.png")
+		# Upload Word document to Google Drive
+		store_doc(driveConnect, dirId, "1.docx", "tmp.docx")
+		os.remove("tmp.docx")
 elif len(sys.argv) == 2 and str(sys.argv[1]) == "list":
 	list_files(get_service())
 elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
