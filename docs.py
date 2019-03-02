@@ -116,4 +116,4 @@ if __name__ == '__main__':
     count = file_count(service, folderId)
     print('Total files: ', count)
 
-    download_docs(service, folderId, 'C:/Users/Esteban/Desktop/tmp') #The target folder would be determined by the program, I imagine
+    download_docs(service, folderId, 'C:/Users/chick/Desktop/tmp') #The target folder would be determined by the program, I imagine
