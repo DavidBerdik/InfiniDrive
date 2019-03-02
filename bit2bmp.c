@@ -3,48 +3,72 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* BMP Header:
-   u16 id;
-   u32 size;
-   u16 _;
-   u16 _;
-   u32 pixel_offset;
- */
-void write_bmp_header(uint32_t size, uint32_t pixel_offset) {
-    uint8_t header[14];
-    header[0] = 'B';
-    header[1] = 'M';
-    header[2] = (size >> 24) * 0xFF;
-    header[3] = (size >> 16) * 0xFF;
-    header[4] = (size >> 8) * 0xFF;
-    header[5] = size * 0xFF;
-    header[10] = (pixel_offset >> 24) * 0xFF;
-    header[11] = (pixel_offset >> 16) * 0xFF;
-    header[12] = (pixel_offset >> 8) * 0xFF;
-    header[13] = pixel_offset * 0xFF;
-}
+#pragma pack(push, 1)
+struct BMP {
+    uint8_t id1;
+    uint8_t id2;
+    uint32_t filesize;
+    uint16_t r1;
+    uint16_t r2;
+    uint32_t pixel_offset;
+    uint32_t dib_size;     // 40
+    int32_t width;         // Yes, signed.  Negative widths, baby.
+    int32_t height;        // Yes, signed as well.
+    uint16_t color_planes; // 1
+    uint16_t bpp;
+    uint32_t compressionT_type; // 0
+    uint32_t image_size;        // 0 for uncompressed.
+    int32_t xppm; // Doesn't matter.
+    int32_t yppm; // Doesn't matter.
+    uint32_t map_entries_used;  // 0
+    uint32_t important_colors;  // 0 ("all")
+};
+#pragma pack(pop)
 
-void print_hello() {
-    puts("Hello World!");
+void write_header(int32_t width, int32_t height) {
+    struct BMP header = {0};
+    header.id1 = 'B';
+    header.id2 = 'M';
+    header.filesize = sizeof(header) + abs(width) * abs(height) * 4;
+    header.pixel_offset = sizeof(header); // We're putting the pixels right after the header.
+    header.dib_size = 40;
+    header.width = width;
+    header.height = height;
+    header.color_planes = 1;
+    header.bpp = 32;
+    fwrite(&header, sizeof(header), 1, stdout);
 }
 
 // chunks are 5 megs
 // should have a start chunk argument and end chunk argument
 int main(int argc, char ** argv) {
     FILE * source = NULL;
+    long source_len;
+    long in_total = 0;
+    char in;
 
-    if (argc > 1) {
-        source = fopen(argv[1], "rb");
-    } else if (argc == 1) {
-        source = stdin;
-    }
-
-    if (!source) {
-        fprintf(stderr, "Could not open source file.");
+    if (argc < 2) {
+        fprintf(stderr, "Usage: %s <filename>\n", argv[0]);
         return 1;
     }
 
-    write_bmp_header(0, 0);
+    source = fopen(argv[1], "rb");
+    if (!source) {
+        fprintf(stderr, "Could not open %s.", argv[1]);
+        return 1;
+    }
+
+    fseek(source, 0, SEEK_END);
+    source_len = ftell(source) + 4;
+    rewind(source);
+
+    write_header(source_len / 4, 1);
+
+    while ((in = fgetc(source)) != EOF) {
+        putchar(in);
+        ++in_total;
+    }
+    while (in_total++ < source_len) putchar(0);
 
     return 0;
 }
