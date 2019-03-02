@@ -87,13 +87,14 @@ def file_count(service, folderId):
     files = results.get('files', [])
     return len(files)
 
-def list_files:
-    results = service.files().list(mimeType='application/vnd.google-apps.folder', fields="nextPageToken, files(id, name)").execute()
+#Lists folders and their IDs
+def list_files(service):
+    results = service.files().list(q="mimeType='application/vnd.google-apps.folder'", fields="nextPageToken, files(id, name)").execute()
     folders = results.get('files', [])
     
     print('Folder List')
     for folder in folders:
-        print('folder.get('name') + '(ID: ' +folder.get('id') + ')')
+        print(folder.get('name') + ' (ID: ' +folder.get('id') + ')')
 
 #Downloads documents from a specified folder into a target folder
 def download_docs(service, folderId, targetFolder):
@@ -114,15 +115,16 @@ def download_docs(service, folderId, targetFolder):
             print ("Download %d%%." % int(status.progress() * 100))
         count =  count+1
 
-#Tester method that does tha following: Uploads 3 docx files into a generated folder, prints the file count, then downloads them into a specified target folder
+#Tester method
 if __name__ == '__main__':
-    service, folderId = begin_storage('example/path') #The real pathname will go here, of course
-    store_doc(service, folderId, './testfiles/testdoc1.docx')
-    store_doc(service, folderId, './testfiles/testdoc2.docx')
-    store_doc(service, folderId, './testfiles/testdoc3.docx')
+    #service, folderId = begin_storage('example/path') #The real pathname will go here, of course
+    #store_doc(service, folderId, './testfiles/testdoc1.docx')
+    #store_doc(service, folderId, './testfiles/testdoc2.docx')
+    #store_doc(service, folderId, './testfiles/testdoc3.docx')
  
     #count = file_count(service, folderId)
     #print('Total files: ', count)
 
     #download_docs(service, folderId, 'C:/Users/chick/Desktop/tmp') #The target folder would be determined by the program, I imagine
-    list_files()
+    service = get_service()
+    list_files(service)
