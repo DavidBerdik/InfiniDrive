@@ -2,7 +2,7 @@ import os, shutil, sys, zipfile
 
 from docx import Document
 from PIL import Image
-from quickstart import begin_storage
+from docs import begin_storage
 
 if len(sys.argv) == 2 and str(sys.argv[1]) == "help":
 	print("Unlimited Google Drive Storage\n")
