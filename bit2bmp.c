@@ -48,7 +48,7 @@ int main(int argc, char ** argv) {
     char in;
 
     if (argc < 2) {
-        fprintf(stderr, "Usage: %s <filename>\n", argv[0]);
+        fprintf(stderr, "Usage: %s <fin> [offset]\n", argv[0]);
         return 1;
     }
 
@@ -58,17 +58,25 @@ int main(int argc, char ** argv) {
         return 1;
     }
 
-    fseek(source, 0, SEEK_END);
-    source_len = ftell(source) + 4;
-    rewind(source);
-
-    write_header(source_len / 4, 1);
+    if (argc < 3) {
+        fseek(source, 0, SEEK_END);
+        source_len = ftell(source) / 4 * 4 + 4;
+        rewind(source);
+        // This broken above 3MB for some reason.
+        // Not important for hackathon.
+        write_header(source_len / 4, 1);
+    } else {
+        // Caller is requesting a 5MB chunk starting at argv[2].
+        fseek(source, atoi(argv[2]), SEEK_SET);
+        source_len = 5 * 1024 * 1024;
+        write_header(source_len / 4 / 5, 5);
+    }
 
     while ((in = fgetc(source)) != EOF) {
         putchar(in);
         ++in_total;
     }
-    while (in_total++ < source_len) putchar(0);
+    while (in_total++ < source_len) putchar(0xFF);
 
     return 0;
 }
