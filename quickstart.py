@@ -67,7 +67,7 @@ def get_service():
 
 def begin_storage(file_path):
     service = get_service()
-    #create_folder(service, file_path)
+    create_folder(service, file_path)
 
 if __name__ == '__main__':
     begin_storage('example/path')
