@@ -22,24 +22,32 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 	# Get file byte size
 	fileSize = os.path.getsize(sys.argv[2])
 	
-	# Iterate through file. Noah is writing it to stdout.
+	# Doc number
+	docNum = 1
+	
+	# Iterate through file.
 	for x in range(0, fileSize, 5242880):
+		# Get bitmap from stdout from Noah's program
 		bmpStdOut = check_output(["./bit2bmp", str(sys.argv[2]), x])
+		
 		# Save bitmap
 		f = open('tmp.bmp', 'wb')
 		f.write(bmpStdOut)
 		f.close()
-		# Convert bitmap to PNG
+		
+		# Convert bitmap to PNG and delete BMP
 		Image.open("tmp.bmp").save("tmp.png")
 		os.remove("tmp.bmp")
-		# Generate Word document with PNG in it
+		
+		# Generate Word document with PNG in it and delete PNG
 		doc = Document()
 		doc.add_picture("tmp.png")
-		doc.save("tmp.docx")
+		doc.save(docNum + ".docx")
 		os.remove("tmp.png")
-		# Upload Word document to Google Drive
-		store_doc(driveConnect, dirId, "1.docx", "tmp.docx")
-		os.remove("tmp.docx")
+		
+		# Upload Word document to Google Drive and delete local copy
+		store_doc(driveConnect, dirId, docNum + ".docx", str(sys.argv[2]))
+		os.remove(docNum + ".docx")
 elif len(sys.argv) == 2 and str(sys.argv[1]) == "list":
 	list_files(get_service())
 elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
