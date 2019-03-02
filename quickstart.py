@@ -13,9 +13,9 @@ def del_folder(id):
     service.files().delete(fileId=id).execute()
 
 #CREATES FOLDER#
-def create_folder(service):
+def create_folder(service, file_path):
     file_metadata = {
-    'name': 'TestFolder',
+    'name': file_path,
     'mimeType': 'application/vnd.google-apps.folder'
     }
     file = service.files().create(body=file_metadata, fields= 'id').execute()
@@ -55,8 +55,6 @@ def get_service():
     #items = results.get('files', [])
     
 
-    
-
     #LISTS ITEMS#
     #if not items:
     #    print('No files found.')
@@ -67,7 +65,9 @@ def get_service():
 	    #Deletes things
             #service.files().delete(fileId=item['id']).execute()
 
-if __name__ == '__main__':
+def begin_storage(file_path):
     service = get_service()
+    #create_folder(service, file_path)
 
-    create_folder(service)
+if __name__ == '__main__':
+    begin_storage('example/path')
