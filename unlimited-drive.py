@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import os, shutil, sys, zipfile
 
 from docx import Document
