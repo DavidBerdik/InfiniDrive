@@ -22,30 +22,42 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 	# Get file byte size
 	fileSize = os.path.getsize(sys.argv[2])
 	
-	# Iterate through file. Noah is writing it to stdout.
+	# Doc number
+	docNum = 1
+	
+	# Iterate through file.
 	for x in range(0, fileSize, 5242880):
-		bmpStdOut = check_output(["./bit2bmp", str(sys.argv[2]), x])
+		# Get bitmap from stdout from Noah's program
+		print("./bit2bmp " + str(sys.argv[2]) + " " + str(x))
+		bmpStdOut = check_output(["./bit2bmp", str(sys.argv[2]), str(x)])
+		
 		# Save bitmap
 		f = open('tmp.bmp', 'wb')
 		f.write(bmpStdOut)
 		f.close()
-		# Convert bitmap to PNG
+		break
+		
+		# Convert bitmap to PNG and delete BMP
 		Image.open("tmp.bmp").save("tmp.png")
 		os.remove("tmp.bmp")
-		# Generate Word document with PNG in it
+		
+		# Generate Word document with PNG in it and delete PNG
 		doc = Document()
 		doc.add_picture("tmp.png")
-		doc.save("tmp.docx")
+		doc.save(str(docNum) + ".docx")
 		os.remove("tmp.png")
-		# Upload Word document to Google Drive
-		store_doc(driveConnect, dirId, "1.docx", "tmp.docx")
-		os.remove("tmp.docx")
+		
+		# Upload Word document to Google Drive and delete local copy
+		'''store_doc(driveConnect, dirId, str(docNum) + ".docx", str(sys.argv[2]))
+		os.remove(str(docNum) + ".docx")'''
+		
+		docNum = docNum + 1
 elif len(sys.argv) == 2 and str(sys.argv[1]) == "list":
 	list_files(get_service())
 elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 	# Download all files from the Google Drive folder
-	download_docs(get_service(), str(sys.argv[2]), "./dltemp")
-    result_name = raw_input("Enter filename to save as: ") or "mydownload.bin"
+	'''download_docs(get_service(), str(sys.argv[2]), "./dltemp")
+    result_name = raw_input("Enter filename to save as: ")
     result = open("./dltemp/" + result_name, "wb")
 
     for filename in os.listdir("./dltemp"):
@@ -72,6 +84,7 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
         os.remove(bmpname)
         os.remove(dirname)
 
-    result.close()
+	result.close()'''
+	print()
 else:
 	print("Error: Invalid command line arguments (use help to display help)")

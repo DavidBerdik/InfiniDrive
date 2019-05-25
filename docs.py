@@ -108,30 +108,3 @@ def download_docs(service, folderId, targetFolder):
             status, done = downloader.next_chunk()
             print ("Download %d%%." % int(status.progress() * 100))
         count =  count+1
-
-#Tester method
-if __name__ == '__main__':
-    #service, folderId = begin_storage('examplefolder') #The real pathname will go here, of course
-    #store_doc(service, folderId, 'file1', './testfiles/testdoc1.docx')
-    #store_doc(service, folderId, 'file2', './testfiles/testdoc2.docx')
-    #store_doc(service, folderId, 'file3', './testfiles/testdoc3.docx')
- 
-    #count = file_count(service, folderId)
-    #print('Total files: ', count)
-    #service = get_service()
-    #download_docs(service, folderId, 'your_path_here') #The target folder would be determined by the program, I imagine
-    
-    #list_files(service)
-#Tester method
-if __name__ == '__main__':
-    #service, folderId = begin_storage('examplefolder') #The real pathname will go here, of course
-    #store_doc(service, folderId, 'file1', './testfiles/testdoc1.docx')
-    #store_doc(service, folderId, 'file2', './testfiles/testdoc2.docx')
-    #store_doc(service, folderId, 'file3', './testfiles/testdoc3.docx')
- 
-    #count = file_count(service, folderId)
-    #print('Total files: ', count)
-    #service = get_service()
-    #download_docs(service, folderId, 'your_path_here') #The target folder would be determined by the program, I imagine
-    
-    #list_files(service)
