@@ -6,3 +6,6 @@ tmp/
 
 # Ignore "unlimited-drive.pyc" file
 unlimited-drive.pyc
+
+# Ignore "token.pickle" file
+token.pickle
