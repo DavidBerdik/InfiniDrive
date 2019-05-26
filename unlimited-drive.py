@@ -43,11 +43,11 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 			doc = Document()
 			doc.add_picture("tmp.png")
 			doc.save(str(docNum) + ".docx")
-			#os.remove("tmp.png")
+			os.remove("tmp.png")
 			
 			# Upload Word document to Google Drive and delete local copy
 			store_doc(driveConnect, dirId, str(docNum) + ".docx", str(docNum) + ".docx")
-			#os.remove(str(docNum) + ".docx")
+			os.remove(str(docNum) + ".docx")
 			
 			# Increment docNum for next Word document and read next chunk of data.
 			docNum = docNum + 1
