@@ -46,7 +46,7 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 			#os.remove("tmp.png")
 			
 			# Upload Word document to Google Drive and delete local copy
-			#store_doc(driveConnect, dirId, str(docNum) + ".docx", str(sys.argv[2]))
+			store_doc(driveConnect, dirId, str(docNum) + ".docx", str(docNum) + ".docx")
 			#os.remove(str(docNum) + ".docx")
 			
 			# Increment docNum for next Word document and read next chunk of data.
