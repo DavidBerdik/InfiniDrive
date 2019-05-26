@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import os, shutil, sys, zipfile
+import funcy, os, shutil, sys, zipfile
 
 from docs import begin_storage
 from docs import download_docs
@@ -27,31 +27,43 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 	# Doc number
 	docNum = 1
 	
-	# Iterate through file in 1MB (1048576 bytes) chunks.
-	with open(str(sys.argv[2]), 'rb') as infile:
-		# Read a 1MB chunk of data from the file.
-		chunkReadSize = 1048575
-		fileBytes = infile.read(chunkReadSize) # using 1 byte less than a full 1MB since it divides by 3 perfectly
+	# Iterate through file in 48MB (50331648 bytes) chunks.
+	infile = open(str(sys.argv[2]), 'rb')
+	
+	# Read an initial 48MB chunk from the file.
+	fileBytes = infile.read(50331648)
+	
+	# Keep looping until no more data is read.
+	while fileBytes:
+		# Split the 48MB chunk to a list of 10000 byte fragments.
+		byteFrags = list(funcy.chunks(10000, fileBytes))
 		
-		# Keep looping until no more data is read.
-		while fileBytes:
+		# Generate a new Word document.
+		doc = Document()
+		
+		# Iterate through byteFrags one fragment at a time.
+		for byteFrag in byteFrags:
 			# Generate and save a temporary PNG.
-			img = Image.frombytes('RGB', (len(fileBytes) // 3 // 25, 25), fileBytes)
+			img = Image.frombytes('L', (len(byteFrag), 1), byteFrag)
 			img.save('tmp.png')
 			
-			# Generate Word document with PNG in it and delete PNG
-			doc = Document()
-			doc.add_picture("tmp.png")
-			doc.save(str(docNum) + ".docx")
-			os.remove("tmp.png")
+			# Add temporary PNG to the Word document.
+			doc.add_picture('tmp.png')
 			
-			# Upload Word document to Google Drive and delete local copy
-			store_doc(driveConnect, dirId, str(docNum) + ".docx", str(docNum) + ".docx")
-			os.remove(str(docNum) + ".docx")
+			# Delete temporary PNG.
+			os.remove('tmp.png')
+		
+		# Save the generated Word document.
+		doc.save(str(docNum) + ".docx")
+		
+		# Upload Word document to Google Drive and delete local copy
+		store_doc(driveConnect, dirId, str(docNum) + ".docx", str(docNum) + ".docx")
+		#os.remove(str(docNum) + ".docx")
+	
+		# Increment docNum for next Word document and read next chunk of data.
+		docNum = docNum + 1
+		fileBytes = infile.read(50331648)
 			
-			# Increment docNum for next Word document and read next chunk of data.
-			docNum = docNum + 1
-			fileBytes = infile.read(chunkReadSize)
 elif len(sys.argv) == 2 and str(sys.argv[1]) == "list":
 	list_files(get_service())
 elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
