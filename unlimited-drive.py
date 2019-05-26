@@ -29,24 +29,29 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 	
 	# Iterate through file in 1MB (1048576 bytes) chunks.
 	with open(str(sys.argv[2]), 'rb') as infile:
-		# Read a 5MB chunk of data from the file.
-		fileBytes = infile.read(1048575) # using 1 byte less than a full 1MB since it divides by 3 perfectly
+		# Read a 1MB chunk of data from the file.
+		chunkReadSize = 1048575
+		fileBytes = infile.read(chunkReadSize) # using 1 byte less than a full 1MB since it divides by 3 perfectly
 		
-		# Generate and save a temporary PNG.
-		img = Image.frombytes('RGB', (len(fileBytes) // 3 // 25, 25), fileBytes)
-		img.save('tmp.png')
-		
-		# Generate Word document with PNG in it and delete PNG
-		doc = Document()
-		doc.add_picture("tmp.png")
-		doc.save(str(docNum) + ".docx")
-		#os.remove("tmp.png")
-		
-		# Upload Word document to Google Drive and delete local copy
-		#store_doc(driveConnect, dirId, str(docNum) + ".docx", str(sys.argv[2]))
-		#os.remove(str(docNum) + ".docx")
-		
-		docNum = docNum + 1
+		# Keep looping until no more data is read.
+		while fileBytes:
+			# Generate and save a temporary PNG.
+			img = Image.frombytes('RGB', (len(fileBytes) // 3 // 25, 25), fileBytes)
+			img.save('tmp.png')
+			
+			# Generate Word document with PNG in it and delete PNG
+			doc = Document()
+			doc.add_picture("tmp.png")
+			doc.save(str(docNum) + ".docx")
+			#os.remove("tmp.png")
+			
+			# Upload Word document to Google Drive and delete local copy
+			#store_doc(driveConnect, dirId, str(docNum) + ".docx", str(sys.argv[2]))
+			#os.remove(str(docNum) + ".docx")
+			
+			# Increment docNum for next Word document and read next chunk of data.
+			docNum = docNum + 1
+			fileBytes = infile.read(chunkReadSize)
 elif len(sys.argv) == 2 and str(sys.argv[1]) == "list":
 	list_files(get_service())
 elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
