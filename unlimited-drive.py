@@ -2,13 +2,13 @@
 
 import os, shutil, sys, zipfile
 
-from docx import Document
-from PIL import Image
 from docs import begin_storage
 from docs import download_docs
 from docs import get_service
 from docs import list_files
 from docs import store_doc
+from docx import Document
+from PIL import Image
 from subprocess import check_output
 
 if len(sys.argv) == 2 and str(sys.argv[1]) == "help":
@@ -27,21 +27,14 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 	# Doc number
 	docNum = 1
 	
-	# Iterate through file.
-	for x in range(0, fileSize, 5242880):
-		# Get bitmap from stdout from Noah's program
-		print("./bit2bmp " + str(sys.argv[2]) + " " + str(x))
-		bmpStdOut = check_output(["./bit2bmp", str(sys.argv[2]), str(x)])
+	# Iterate through file in 5MB (5242880 bytes) chunks.
+	with open(str(sys.argv[2]), 'rb') as infile:
+		# Read a 5MB chunk of data from the file.
+		fileBytes = infile.read(5242878) # using 2 bytes less than a full 5MB since it divides by 3 perfectly
 		
-		# Save bitmap
-		f = open('tmp.bmp', 'wb')
-		f.write(bmpStdOut)
-		f.close()
-		break
-		
-		# Convert bitmap to PNG and delete BMP
-		Image.open("tmp.bmp").save("tmp.png")
-		os.remove("tmp.bmp")
+		# Generate and save a temporary PNG.
+		img = Image.frombytes('RGB', (len(fileBytes) // 3, 1), fileBytes)
+		img.save('tmp.png')
 		
 		# Generate Word document with PNG in it and delete PNG
 		doc = Document()
@@ -50,8 +43,8 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 		os.remove("tmp.png")
 		
 		# Upload Word document to Google Drive and delete local copy
-		'''store_doc(driveConnect, dirId, str(docNum) + ".docx", str(sys.argv[2]))
-		os.remove(str(docNum) + ".docx")'''
+		#store_doc(driveConnect, dirId, str(docNum) + ".docx", str(sys.argv[2]))
+		#os.remove(str(docNum) + ".docx")
 		
 		docNum = docNum + 1
 elif len(sys.argv) == 2 and str(sys.argv[1]) == "list":
