@@ -8,6 +8,7 @@ from docs import get_service
 from docs import list_files
 from docs import store_doc
 from docx import Document
+from io import BytesIO
 from PIL import Image
 from subprocess import check_output
 
@@ -43,15 +44,16 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 		
 		# Iterate through byteFrags one fragment at a time.
 		for byteFrag in byteFrags:
-			# Generate and save a temporary PNG.
+			# Generate and save a temporary PNG in memory.
 			img = Image.frombytes('L', (len(byteFrag), 1), byteFrag)
-			img.save('tmp.png')
+			mem_img = BytesIO()
+			img.save(mem_img, 'PNG')
 			
 			# Add temporary PNG to the Word document.
-			doc.add_picture('tmp.png')
+			doc.add_picture(mem_img)
 			
 			# Delete temporary PNG.
-			os.remove('tmp.png')
+			#os.remove('tmp.png')
 		
 		# Save the generated Word document.
 		doc.save(str(docNum) + ".docx")
