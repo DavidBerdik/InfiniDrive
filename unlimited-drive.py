@@ -45,6 +45,7 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 		
 		# Iterate through byteFrags one fragment at a time.
 		for byteFrag in byteFrags:
+			# If byteFrag is not exactly the correct size, pad it will null bytes.
 			if len(byteFrag) < chunkSizes:
 				byteFrag += bytes(chunkSizes - len(byteFrag))
 		
