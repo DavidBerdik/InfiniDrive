@@ -10,7 +10,6 @@ from docs import store_doc
 from docx import Document
 from io import BytesIO
 from PIL import Image
-from subprocess import check_output
 
 if len(sys.argv) == 2 and str(sys.argv[1]) == "help":
 	print("Unlimited Google Drive Storage\n")
