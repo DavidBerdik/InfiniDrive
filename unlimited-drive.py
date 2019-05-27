@@ -72,35 +72,33 @@ elif len(sys.argv) == 2 and str(sys.argv[1]) == "list":
 	list_files(get_service())
 elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 	# Download all files from the Google Drive folder
-	'''download_docs(get_service(), str(sys.argv[2]), "./dltemp")
-    result_name = raw_input("Enter filename to save as: ")
-    result = open("./dltemp/" + result_name, "wb")
+	download_docs(get_service(), str(sys.argv[2]), "./dltemp")
+	result = open(str(sys.argv[3]), "wb")
 
-    for filename in os.listdir("./dltemp"):
-        # 	2.1.) For now, we are unzipping the temp docx but that will change once Steven's code is done.
-        zipname = filename.replace("docx", "zip")
-        dirname = zipname.replace("zip", "")
-        bmpname = dirname + ".bmp"
+	for filename in os.listdir("./dltemp"):
+		# Extract the Word document from which we will read the images.
+		zipname = filename.replace("docx", "zip")
+		dirname = zipname.replace(".zip", "")
+		os.rename("./dltemp/" + filename, "./dltemp/" + zipname)
+		zipRef = zipfile.ZipFile("./dltemp/" + zipname, 'r')
+		zipRef.extractall("./dltemp/" + dirname)
+		zipRef.close()
+		os.remove("./dltemp/" + zipname)
+		#dirname + "/word/media/image1.png"
+		
+		#	2.2.) Convert the PNG back to BMP and save.
+		Image.open("./dltemp/" + dirname + "/word/media/image1.png").save(bmpname)
+		#	2.3.) Delete the unzipped folder
+		#shutil.rmtree("./" + dirname)
+		#	2.4.) Write the data stored in the BMP to the file we are downloading
+		bfile = open(bmpname, "rb")
+		bdata = bytearray(bfile.read())
+		result.write(bdata[54:])
+		#bfile.close()
+		#	2.5.) Delete the temporary BMP
+		os.remove(dirname)
 
-        os.rename(filename, zipname)
-        zipRef = zipfile.ZipFile(zipname, 'r')
-        zipRef.extractall(dirname)
-        zipRef.close()
-        os.remove(zipname)
-        #	2.2.) Convert the PNG back to BMP and save.
-        Image.open("./" + dirname + "/word/media/image1.png").save(bmpname)
-        #	2.3.) Delete the unzipped folder
-        shutil.rmtree("./" + dirname)
-        #	2.4.) Write the data stored in the BMP to the file we are downloading
-        bfile = open(bmpname, "rb")
-        bdata = bytearray(bfile.read())
-        result.write(bdata[54:]
-        bfile.close()
-        #	2.5.) Delete the temporary BMP
-        os.remove(bmpname)
-        os.remove(dirname)
-
-	result.close()'''
-	print()
+		#result.close()
+		print()
 else:
 	print("Error: Invalid command line arguments (use help to display help)")
