@@ -31,7 +31,8 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 	infile = open(str(sys.argv[2]), 'rb')
 	
 	# Read an initial 48MB chunk from the file.
-	fileBytes = infile.read(50331648)
+	readChunkSizes = 50331648
+	fileBytes = infile.read(readChunkSizes)
 	
 	# Keep looping until no more data is read.
 	while fileBytes:
@@ -65,7 +66,7 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 	
 		# Increment docNum for next Word document and read next chunk of data.
 		docNum = docNum + 1
-		fileBytes = infile.read(50331648)
+		fileBytes = infile.read(readChunkSizes)
 			
 elif len(sys.argv) == 2 and str(sys.argv[1]) == "list":
 	list_files(get_service())
