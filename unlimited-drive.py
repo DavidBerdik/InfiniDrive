@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import funcy, os, shutil, sys, zipfile
+import array, funcy, os, shutil, sys, zipfile
 
 from docs import begin_storage
 from docs import download_docs
@@ -75,6 +75,7 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 	download_docs(get_service(), str(sys.argv[2]), "./dltemp")
 	result = open(str(sys.argv[3]), "wb")
 
+	# For all Word documents that were downloaded from Google Drive...
 	for filename in os.listdir("./dltemp"):
 		# Extract the Word document from which we will read the images.
 		zipname = filename.replace("docx", "zip")
@@ -84,19 +85,20 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 		zipRef.extractall("./dltemp/" + dirname)
 		zipRef.close()
 		os.remove("./dltemp/" + zipname)
-		#dirname + "/word/media/image1.png"
 		
-		#	2.2.) Convert the PNG back to BMP and save.
-		Image.open("./dltemp/" + dirname + "/word/media/image1.png").save(bmpname)
-		#	2.3.) Delete the unzipped folder
-		#shutil.rmtree("./" + dirname)
-		#	2.4.) Write the data stored in the BMP to the file we are downloading
-		bfile = open(bmpname, "rb")
-		bdata = bytearray(bfile.read())
-		result.write(bdata[54:])
-		#bfile.close()
-		#	2.5.) Delete the temporary BMP
-		os.remove(dirname)
+		# Get the RGB pixel values from the image as a list of tuples that we will break up and then convert to a bytestring.
+		pixelVals = list(Image.open("./dltemp/" + dirname + "/word/media/image1.png").convert('RGB').getdata())
+		pixelVals = [j for i in pixelVals for j in i]
+		pixelVals = array.array('B', pixelVals).tostring()
+		
+		# Write the data stored in "pixelVals" to the output file.
+		result.write(pixelVals)
+		
+		# Delete the unzipped folder
+		shutil.rmtree("./dltemp/" + dirname)
+		
+		# Delete the "dltemp" folder.
+		shutil.rmtree("./dltemp")
 
 		#result.close()
 		print()
