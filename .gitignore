@@ -4,6 +4,9 @@ __pycache__/
 # Ignore "tmp" directory
 tmp/
 
+# Ignore "dltemp" directory
+dltemp/
+
 # Ignore "unlimited-drive.pyc" file
 unlimited-drive.pyc
 
