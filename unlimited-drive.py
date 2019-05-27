@@ -56,16 +56,13 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 			
 			# Add temporary PNG to the Word document.
 			doc.add_picture(mem_img)
-			
-			# Delete temporary PNG.
-			#os.remove('tmp.png')
 		
 		# Save the generated Word document.
 		doc.save(str(docNum) + ".docx")
 		
 		# Upload Word document to Google Drive and delete local copy
 		store_doc(driveConnect, dirId, str(docNum) + ".docx", str(docNum) + ".docx")
-		#os.remove(str(docNum) + ".docx")
+		os.remove(str(docNum) + ".docx")
 	
 		# Increment docNum for next Word document and read next chunk of data.
 		docNum = docNum + 1
