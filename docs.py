@@ -94,6 +94,7 @@ def list_files(service):
 
 #Downloads documents from a specified folder into a target folder
 def download_docs(service, folderId, targetFolder):
+    os.mkdir(targetFolder)
     query = "'" +folderId + "' in parents"
     results = service.files().list(q=query, fields='files(id, name)').execute()
     files = results.get('files', []) #grabs all of the files from the folder
