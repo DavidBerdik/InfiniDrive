@@ -36,8 +36,8 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 	
 	# Keep looping until no more data is read.
 	while fileBytes:
-		# Split the 48MB chunk to a list of 4000000 byte fragments.
-		chunkSizes = 4000000
+		# Split the 48MB chunk to a list of 12000000 byte fragments.
+		chunkSizes = 12000000
 		byteFrags = list(funcy.chunks(chunkSizes, fileBytes))
 		
 		# Generate a new Word document.
@@ -50,7 +50,7 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 				byteFrag += bytes(chunkSizes - len(byteFrag))
 		
 			# Generate and save a temporary PNG in memory.
-			img = Image.frombytes('L', (2000, 2000), byteFrag)
+			img = Image.frombytes('RGB', (2000, 2000), byteFrag)
 			mem_img = BytesIO()
 			img.save(mem_img, 'PNG')
 			
