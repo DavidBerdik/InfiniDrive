@@ -78,13 +78,11 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 	# For all Word documents that were downloaded from Google Drive...
 	for filename in os.listdir("./dltemp"):
 		# Extract the Word document from which we will read the images.
-		zipname = filename.replace("docx", "zip")
-		dirname = zipname.replace(".zip", "")
-		os.rename("./dltemp/" + filename, "./dltemp/" + zipname)
-		zipRef = zipfile.ZipFile("./dltemp/" + zipname, 'r')
+		dirname = filename.replace(".docx", "")
+		zipRef = zipfile.ZipFile("./dltemp/" + filename, 'r')
 		zipRef.extractall("./dltemp/" + dirname)
 		zipRef.close()
-		os.remove("./dltemp/" + zipname)
+		os.remove("./dltemp/" + filename)
 		
 		# Get the RGB pixel values from the image as a list of tuples that we will break up and then convert to a bytestring.
 		pixelVals = list(Image.open("./dltemp/" + dirname + "/word/media/image1.png").convert('RGBA').getdata())
