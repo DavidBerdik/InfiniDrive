@@ -36,8 +36,8 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 	
 	# Keep looping until no more data is read.
 	while fileBytes:
-		# Split the 48MB chunk to a list of 12000000 byte fragments.
-		chunkSizes = 12000000
+		# Split the 48MB chunk to a list of 16000000 byte fragments.
+		chunkSizes = 16000000
 		byteFrags = list(funcy.chunks(chunkSizes, fileBytes))
 		
 		# Generate a new Word document.
@@ -50,7 +50,7 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 				byteFrag += bytes(chunkSizes - len(byteFrag))
 		
 			# Generate and save a temporary PNG in memory.
-			img = Image.frombytes('RGB', (2000, 2000), byteFrag)
+			img = Image.frombytes('RGBA', (2000, 2000), byteFrag)
 			mem_img = BytesIO()
 			img.save(mem_img, 'PNG')
 			
@@ -87,7 +87,7 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 		os.remove("./dltemp/" + zipname)
 		
 		# Get the RGB pixel values from the image as a list of tuples that we will break up and then convert to a bytestring.
-		pixelVals = list(Image.open("./dltemp/" + dirname + "/word/media/image1.png").convert('RGB').getdata())
+		pixelVals = list(Image.open("./dltemp/" + dirname + "/word/media/image1.png").convert('RGBA').getdata())
 		pixelVals = [j for i in pixelVals for j in i]
 		pixelVals = array.array('B', pixelVals).tostring()
 		
