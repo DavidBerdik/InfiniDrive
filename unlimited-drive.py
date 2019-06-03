@@ -36,18 +36,23 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 	
 	# Keep looping until no more data is read.
 	while fileBytes:
-		# Split the 48MB chunk to a list of 16000000 byte fragments.
-		chunkSizes = 16000000
+		# Split the 48MB chunk to a list of 15999998 byte fragments.
+		chunkSizes = 15999998
 		byteFrags = list(funcy.chunks(chunkSizes, fileBytes))
 		
 		# Generate a new Word document.
 		doc = Document()
 		
 		# Iterate through byteFrags one fragment at a time.
+		fragNum = 1
 		for byteFrag in byteFrags:
+			# Put a "maker byte" at the beginning of the fragment to indciate the image number
+			# as well as a "spacer byte" at the end of the fragment to indicate end of data.
+			byteFrag = bytes([fragNum]) + byteFrag + bytes([255])
+		
 			# If byteFrag is not exactly the correct size, pad it will null bytes.
-			if len(byteFrag) < chunkSizes:
-				byteFrag += bytes(chunkSizes - len(byteFrag))
+			if len(byteFrag) < chunkSizes + 2:
+				byteFrag += bytes(chunkSizes + 2 - len(byteFrag))
 		
 			# Generate and save a temporary PNG in memory.
 			img = Image.frombytes('RGBA', (2000, 2000), byteFrag)
@@ -56,6 +61,9 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 			
 			# Add temporary PNG to the Word document.
 			doc.add_picture(mem_img)
+			
+			# Keep track of fragment numbers so we can determine what our "marker byte" should be.
+			fragNum = fragNum + 1
 		
 		# Save the generated Word document.
 		doc.save(str(docNum) + ".docx")
