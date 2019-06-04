@@ -1,4 +1,5 @@
 funcy
 google-api-python-client
 google-auth-oauthlib
+pillow
 python-docx
