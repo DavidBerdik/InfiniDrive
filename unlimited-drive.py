@@ -27,43 +27,31 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 	# Doc number
 	docNum = 1
 	
-	# Iterate through file in 48MB (50331648 bytes) chunks.
+	# Iterate through file in 9.75MB (10223616 bytes) chunks.
 	infile = open(str(sys.argv[2]), 'rb')
 	
-	# Read an initial 48MB chunk from the file.
-	readChunkSizes = 50331648
+	# Read an initial 9.75MB chunk from the file.
+	readChunkSizes = 10223616
 	fileBytes = infile.read(readChunkSizes)
 	
 	# Keep looping until no more data is read.
 	while fileBytes:
-		# Split the 48MB chunk to a list of 15999998 byte fragments.
-		chunkSizes = 15999998
-		byteFrags = list(funcy.chunks(chunkSizes, fileBytes))
-		
+		# Add a "spacer byte" at the end to indciate end of data and start of padding.
+		fileBytes += bytes([255])
+	
 		# Generate a new Word document.
 		doc = Document()
 		
-		# Iterate through byteFrags one fragment at a time.
-		fragNum = 1
-		for byteFrag in byteFrags:
-			# Put a "maker byte" at the beginning of the fragment to indciate the image number
-			# as well as a "spacer byte" at the end of the fragment to indicate end of data.
-			byteFrag = bytes([fragNum]) + byteFrag + bytes([255])
+		# Pad the fragment with enough null bytes to reach the requirements for the image dimensions.
+		fileBytes += bytes(10224000 - len(fileBytes))
 		
-			# If byteFrag is not exactly the correct size, pad it will null bytes.
-			if len(byteFrag) < chunkSizes + 2:
-				byteFrag += bytes(chunkSizes + 2 - len(byteFrag))
-		
-			# Generate and save a temporary PNG in memory.
-			img = Image.frombytes('RGBA', (2000, 2000), byteFrag)
-			mem_img = BytesIO()
-			img.save(mem_img, 'PNG')
-			
-			# Add temporary PNG to the Word document.
-			doc.add_picture(mem_img)
-			
-			# Keep track of fragment numbers so we can determine what our "marker byte" should be.
-			fragNum = fragNum + 1
+		# Generate and save a temporary PNG in memory.
+		img = Image.frombytes('RGBA', (2000, 1278), fileBytes)
+		mem_img = BytesIO()
+		img.save(mem_img, 'PNG')
+
+		# Add temporary PNG to the Word document.
+		doc.add_picture(mem_img)
 		
 		# Save the generated Word document.
 		doc.save(str(docNum) + ".docx")
