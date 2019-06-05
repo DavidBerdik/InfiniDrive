@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import array, funcy, os, shutil, sys, zipfile
+import array, os, shutil, sys, zipfile
 
 from docs import begin_storage
 from docs import download_docs
