@@ -4,6 +4,7 @@ from __future__ import print_function
 import pickle
 import os.path
 import io
+import ntpath
 from googleapiclient.discovery import build
 from apiclient import errors
 from apiclient.http import MediaFileUpload
@@ -53,7 +54,7 @@ def create_folder(service, file_path):
     }
     folder = service.files().create(body=folder_metadata, fields= 'id').execute()
 
-    print('Folder created, ID: %s' % folder.get('id'))
+    #print('Folder created, ID: %s' % folder.get('id'))
     return folder.get('id')
 
 #Stores a file into a folder
@@ -99,18 +100,33 @@ def download_docs(service, folderId, targetFolder):
     except FileExistsError:
         pass	
     query = "'" +folderId + "' in parents"
-    results = service.files().list(q=query, fields='files(id, name)').execute()
-    files = results.get('files', []) #grabs all of the files from the folder
+    page_token = None
+    while True:
+        param = {}
 
-    total = len(files)
-    count = 1
-    for file in files:
-        print('Downloading file ', count, ' of ', total)
-        request = service.files().export_media(fileId=file['id'], mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-        fh = io.FileIO(targetFolder +'/' +file['name'] + '.docx', 'wb')
-        downloader = MediaIoBaseDownload(fh, request)
-        done = False
-        while done is False:
-            status, done = downloader.next_chunk()
-            print ("Download %d%%." % int(status.progress() * 100))
-        count =  count+1
+        if page_token:
+            param['page_token'] = page_token
+            
+        results = service.files().list(q=query, fields='files(id, name)', **param).execute()
+        files = results.get('files', []) #grabs all of the files from the folder
+
+        total = len(files)
+        count = 1
+        for file in files:
+            print('Downloading file ', count, ' of ', total)
+            request = service.files().export_media(fileId=file['id'], mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+            fh = io.FileIO(targetFolder +'/' +file['name'] + '.docx', 'wb')
+            downloader = MediaIoBaseDownload(fh, request)
+            done = False
+            while done is False:
+                status, done = downloader.next_chunk()
+                print ("Download %d%%." % int(status.progress() * 100))
+                count =  count+1
+            
+        page_token = results.get('nextPageToken')
+        if not page_token:
+            break
+
+def path_leaf(file_path):
+    head, tail = ntpath.split(file_path)
+    return tail or ntpath.basename(head)
