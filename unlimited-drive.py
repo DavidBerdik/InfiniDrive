@@ -83,7 +83,7 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 		# Get the RGB pixel values from the image as a list of tuples that we will break up and then convert to a bytestring.
 		pixelVals = list(Image.open("./dltemp/" + dirname + "/word/media/image1.png").convert('RGBA').getdata())
 		pixelVals = [j for i in pixelVals for j in i]
-		pixelVals = array.array('B', pixelVals).tostring().rstrip(b'\x00')
+		pixelVals = array.array('B', pixelVals).tostring().rstrip(b'\x00')[:-1]
 		
 		# Write the data stored in "pixelVals" to the output file.
 		result.write(pixelVals)
