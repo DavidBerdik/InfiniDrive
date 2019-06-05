@@ -91,10 +91,10 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 		# Delete the unzipped folder
 		shutil.rmtree("./dltemp/" + dirname)
 		
-		# Delete the "dltemp" folder.
-		shutil.rmtree("./dltemp")
+	# Delete the "dltemp" folder.
+	shutil.rmtree("./dltemp")
 
-		#result.close()
-		print()
+	result.close()
+	print()
 else:
 	print("Error: Invalid command line arguments (use help to display help)")
