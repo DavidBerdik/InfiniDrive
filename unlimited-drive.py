@@ -54,11 +54,11 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 		doc.add_picture(mem_img)
 		
 		# Save the generated Word document.
-		doc.save(str(docNum) + ".docx")
+		mem_doc = BytesIO()
+		doc.save(mem_doc)
 		
-		# Upload Word document to Google Drive and delete local copy
-		store_doc(driveConnect, dirId, str(docNum) + ".docx", str(docNum) + ".docx")
-		os.remove(str(docNum) + ".docx")
+		# Upload Word document to Google Drive
+		store_doc(driveConnect, dirId, str(docNum) + ".docx", mem_doc)
 	
 		# Increment docNum for next Word document and read next chunk of data.
 		docNum = docNum + 1

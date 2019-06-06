@@ -7,7 +7,7 @@ import io
 import ntpath
 from googleapiclient.discovery import build
 from apiclient import errors
-from apiclient.http import MediaFileUpload
+from apiclient.http import MediaIoBaseUpload
 from apiclient.http import MediaIoBaseDownload
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
@@ -64,7 +64,7 @@ def store_doc(service, folderId, file_name, file_path):
     'mimeType': 'application/vnd.google-apps.document',
     'parents': [folderId]
     }
-    media = MediaFileUpload(file_path, mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+    media = MediaIoBaseUpload(file_path, mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
     file = service.files().create(body=file_metadata,
                                   media_body=media,
                                   fields = 'id').execute()
