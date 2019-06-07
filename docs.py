@@ -120,7 +120,6 @@ def download_docs(service, folderId, targetFolder):
             done = False
             while done is False:
                 status, done = downloader.next_chunk()
-                print ("Download %d%%." % int(status.progress() * 100))
                 count =  count+1
             
         page_token = results.get('nextPageToken')
