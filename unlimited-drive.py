@@ -72,7 +72,8 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 	result = open(str(sys.argv[3]), "wb")
 
 	# For all Word documents that were downloaded from Google Drive...
-	for filename in os.listdir("./dltemp"):
+	for filenum in range(1, len(os.listdir("./dltemp")) + 1):
+		filename = str(filenum) + ".docx"
 		# Extract the Word document from which we will read the images.
 		dirname = filename.replace(".docx", "")
 		zipRef = zipfile.ZipFile("./dltemp/" + filename, 'r')
