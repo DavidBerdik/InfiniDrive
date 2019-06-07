@@ -112,7 +112,7 @@ def download_docs(service, folderId, targetFolder):
 
         total = len(files)
         count = 1
-        for file in files:
+        for file in reversed(files):
             print('Downloading file ', count, ' of ', total)
             request = service.files().export_media(fileId=file['id'], mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
             fh = io.FileIO(targetFolder +'/' +file['name'] + '.docx', 'wb')
