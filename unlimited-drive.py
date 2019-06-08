@@ -71,26 +71,18 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 	download_docs(get_service(), str(sys.argv[2]), "./dltemp")
 	result = open(str(sys.argv[3]), "wb")
 
-	# For all Word documents that were downloaded from Google Drive...
-	for filenum in range(1, len(os.listdir("./dltemp")) + 1):
-		filename = str(filenum) + ".docx"
-		# Extract the Word document from which we will read the images.
-		dirname = filename.replace(".docx", "")
-		zipRef = zipfile.ZipFile("./dltemp/" + filename, 'r')
-		zipRef.extractall("./dltemp/" + dirname)
-		zipRef.close()
-		os.remove("./dltemp/" + filename)
-		
+	# For all images that were downloaded from Google Drive...
+	for filenum in range(1, len(os.listdir("./dltemp")) + 1):		
 		# Get the RGB pixel values from the image as a list of tuples that we will break up and then convert to a bytestring.
-		pixelVals = list(Image.open("./dltemp/" + dirname + "/word/media/image1.png").convert('RGB').getdata())
+		pixelVals = list(Image.open("./dltemp/" + str(filenum) + ".png").convert('RGB').getdata())
 		pixelVals = [j for i in pixelVals for j in i]
 		pixelVals = array.array('B', pixelVals).tostring().rstrip(b'\x00')[:-1]
 		
 		# Write the data stored in "pixelVals" to the output file.
 		result.write(pixelVals)
 		
-		# Delete the unzipped folder
-		shutil.rmtree("./dltemp/" + dirname)
+		# Delete the image
+		os.remove("./dltemp/" + str(filenum) + ".png")
 		
 	# Delete the "dltemp" folder and close the file we wrote to.
 	shutil.rmtree("./dltemp")

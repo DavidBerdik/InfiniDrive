@@ -5,6 +5,7 @@ import pickle
 import os.path
 import io
 import ntpath
+import zipfile
 from googleapiclient.discovery import build
 from apiclient import errors
 from apiclient.http import MediaIoBaseUpload
@@ -118,14 +119,23 @@ def download_docs(service, folderId, targetFolder):
 	total = len(files)
 	count = 1
 	for file in reversed(files):
+		# Download file to memory
 		print('Downloading file ', count, ' of ', total)
 		request = service.files().export_media(fileId=file['id'], mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-		fh = io.FileIO(targetFolder +'/' +file['name'] + '.docx', 'wb')
+		fh = io.BytesIO()
 		downloader = MediaIoBaseDownload(fh, request)
 		done = False
 		while done is False:
 			status, done = downloader.next_chunk()
 			count =  count+1
+			
+		# Extract image from file and save it to disk.
+		zipRef = zipfile.ZipFile(fh, 'r')
+		imgBytes = zipRef.read('word/media/image1.png')
+		zipRef.close()
+		img = open(targetFolder + '/' + file['name'] + '.png', 'wb')
+		img.write(imgBytes)
+		img.close()
 
 def path_leaf(file_path):
 	head, tail = ntpath.split(file_path)
