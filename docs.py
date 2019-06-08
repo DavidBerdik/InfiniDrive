@@ -1,24 +1,16 @@
 #!/usr/bin/python3
 
-from __future__ import print_function
-import pickle
-import os.path
-import io
-import ntpath
-import zipfile
-from googleapiclient.discovery import build
-from apiclient import errors
-from apiclient.http import MediaIoBaseUpload
+import ntpath, os.path, pickle, zipfile
+
 from apiclient.http import MediaIoBaseDownload
+from apiclient.http import MediaIoBaseUpload
+from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+from io import BytesIO
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/drive']
-
-#DEV FUNCTION TO DELETE FOLDER(S)#
-def del_folder(id):
-	service.files().delete(fileId=id).execute()
 
 #Creates Service object to allow interaction with Google Drive
 def get_service():
@@ -94,12 +86,8 @@ def list_files(service):
 	for folder in folders:
 		print(folder.get('name') + ' (ID: ' +folder.get('id') + ')')
 
-#Downloads documents from a specified folder into a target folder
-def download_docs(service, folderId, targetFolder):
-	try:
-		os.mkdir(targetFolder)
-	except FileExistsError:
-		pass
+# Returns a list of files in a folder with the given ID
+def get_files_list_from_folder(service, folderId):
 	query = "'" +folderId + "' in parents"
 	page_token = None
 	files = list()
@@ -115,27 +103,23 @@ def download_docs(service, folderId, targetFolder):
 		page_token = results.get('nextPageToken')
 		if not page_token:
 			break
+	return files
 
-	total = len(files)
-	count = 1
-	for file in reversed(files):
-		# Download file to memory
-		print('Downloading file ', count, ' of ', total)
-		request = service.files().export_media(fileId=file['id'], mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-		fh = io.BytesIO()
-		downloader = MediaIoBaseDownload(fh, request)
-		done = False
-		while done is False:
-			status, done = downloader.next_chunk()
-			count =  count+1
-			
-		# Extract image from file and save it to disk.
-		zipRef = zipfile.ZipFile(fh, 'r')
-		imgBytes = zipRef.read('word/media/image1.png')
-		zipRef.close()
-		img = open(targetFolder + '/' + file['name'] + '.png', 'wb')
-		img.write(imgBytes)
-		img.close()
+# Returns the bytes from an image in a document
+def get_image_bytes_from_doc(service, file):
+	# Download file to memory
+	request = service.files().export_media(fileId=file['id'], mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+	fh = BytesIO()
+	downloader = MediaIoBaseDownload(fh, request)
+	done = False
+	while done is False:
+		status, done = downloader.next_chunk()
+
+	# Extract image from file and return the image's bytes
+	zipRef = zipfile.ZipFile(fh, 'r')
+	imgBytes = zipRef.read('word/media/image1.png')
+	zipRef.close()
+	return BytesIO(imgBytes)
 
 def path_leaf(file_path):
 	head, tail = ntpath.split(file_path)

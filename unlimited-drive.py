@@ -1,12 +1,7 @@
 #!/usr/bin/python3
 
-import array, os, shutil, sys, zipfile
+import array, docs, os, sys
 
-from docs import begin_storage
-from docs import download_docs
-from docs import get_service
-from docs import list_files
-from docs import store_doc
 from docx import Document
 from io import BytesIO
 from PIL import Image
@@ -19,7 +14,7 @@ if len(sys.argv) == 2 and str(sys.argv[1]) == "help":
 	print("download <folder ID> <file path> - Downloads the contents of the specified folder ID to the specified file path")
 elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 	# Create Google Drive folder
-	driveConnect, dirId = begin_storage(str(sys.argv[2]))
+	driveConnect, dirId = docs.begin_storage(str(sys.argv[2]))
 	
 	# Get file byte size
 	fileSize = os.path.getsize(sys.argv[2])
@@ -58,34 +53,36 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 		doc.save(mem_doc)
 		
 		# Upload Word document to Google Drive
-		store_doc(driveConnect, dirId, str(docNum) + ".docx", mem_doc)
+		docs.store_doc(driveConnect, dirId, str(docNum) + ".docx", mem_doc)
 	
 		# Increment docNum for next Word document and read next chunk of data.
 		docNum = docNum + 1
 		fileBytes = infile.read(readChunkSizes)
 			
 elif len(sys.argv) == 2 and str(sys.argv[1]) == "list":
-	list_files(get_service())
+	docs.list_files(docs.get_service())
 elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
-	# Download all files from the Google Drive folder
-	download_docs(get_service(), str(sys.argv[2]), "./dltemp")
+	# Get a list of the files in the given folder.
+	files = docs.get_files_list_from_folder(docs.get_service(), str(sys.argv[2]))
+	
+	# Open a file at the user-specified path to write the data to
 	result = open(str(sys.argv[3]), "wb")
-
-	# For all images that were downloaded from Google Drive...
-	for filenum in range(1, len(os.listdir("./dltemp")) + 1):		
+	
+	# For all files that are in the list...
+	total = len(files)
+	count = 1
+	for file in reversed(files):
+		print('Downloading file', count, 'of', total)
+		
 		# Get the RGB pixel values from the image as a list of tuples that we will break up and then convert to a bytestring.
-		pixelVals = list(Image.open("./dltemp/" + str(filenum) + ".png").convert('RGB').getdata())
+		pixelVals = list(Image.open(docs.get_image_bytes_from_doc(docs.get_service(), file)).convert('RGB').getdata())
 		pixelVals = [j for i in pixelVals for j in i]
 		pixelVals = array.array('B', pixelVals).tostring().rstrip(b'\x00')[:-1]
 		
 		# Write the data stored in "pixelVals" to the output file.
 		result.write(pixelVals)
+		count += 1
 		
-		# Delete the image
-		os.remove("./dltemp/" + str(filenum) + ".png")
-		
-	# Delete the "dltemp" folder and close the file we wrote to.
-	shutil.rmtree("./dltemp")
 	result.close()
 else:
 	print("Error: Invalid command line arguments (use help to display help)")
