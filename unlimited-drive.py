@@ -6,13 +6,7 @@ from docx import Document
 from io import BytesIO
 from PIL import Image
 
-if len(sys.argv) == 2 and str(sys.argv[1]) == "help":
-	print("Unlimited Google Drive Storage\n")
-	print("help - Displays this help command.")
-	print("upload <file path> - Uploads specified file to Google Drive")
-	print("list - Lists the names of all Google Drive folders and their IDs")
-	print("download <folder ID> <file path> - Downloads the contents of the specified folder ID to the specified file path")
-elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
+if len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 	# Create Google Drive folder
 	driveConnect, dirId = docs.begin_storage(str(sys.argv[2]))
 	
@@ -85,4 +79,8 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 		
 	result.close()
 else:
-	print("Error: Invalid command line arguments (use help to display help)")
+	print("Unlimited Google Drive Storage\n")
+	print("help - Displays this help command.")
+	print("upload <file path> - Uploads specified file to Google Drive")
+	print("list - Lists the names of all Google Drive folders and their IDs")
+	print("download <folder ID> <file path> - Downloads the contents of the specified folder ID to the specified file path")
