@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import ntpath, os.path, pickle, zipfile
+import os.path, pickle, zipfile
 
 from apiclient.http import MediaIoBaseDownload
 from apiclient.http import MediaIoBaseUpload
@@ -70,13 +70,6 @@ def begin_storage(file_path):
 	folderId = create_folder(service, file_path)
 	return service, folderId
 
-#Returns the number of files in a folder    
-def file_count(service, folderId):
-	query = "'" +folderId + "' in parents"
-	results = service.files().list(q=query, fields='files(id, name, parents)').execute()
-	files = results.get('files', [])
-	return len(files)
-
 #Lists folders and their IDs (excluding folders in Trash)
 def list_files(service):
 	results = service.files().list(q="(mimeType='application/vnd.google-apps.folder') and (trashed=False)", fields="nextPageToken, files(id, name)").execute()
@@ -120,7 +113,3 @@ def get_image_bytes_from_doc(service, file):
 	imgBytes = zipRef.read('word/media/image1.png')
 	zipRef.close()
 	return BytesIO(imgBytes)
-
-def path_leaf(file_path):
-	head, tail = ntpath.split(file_path)
-	return tail or ntpath.basename(head)
