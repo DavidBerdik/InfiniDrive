@@ -27,11 +27,11 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 	# Doc number
 	docNum = 1
 	
-	# Iterate through file in 9.75MB (10223616 bytes) chunks.
+	# Iterate through file in 9.750365257263184MB (10223999 bytes) chunks.
 	infile = open(str(sys.argv[2]), 'rb')
 	
-	# Read an initial 9.75MB chunk from the file.
-	readChunkSizes = 10223616
+	# Read an initial 9.750365257263184MB chunk from the file.
+	readChunkSizes = 10223999
 	fileBytes = infile.read(readChunkSizes)
 	
 	# Keep looping until no more data is read.
