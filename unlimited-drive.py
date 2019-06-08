@@ -46,7 +46,7 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 		fileBytes += bytes(10224000 - len(fileBytes))
 		
 		# Generate and save a temporary PNG in memory.
-		img = Image.frombytes('RGBA', (2000, 1278), fileBytes)
+		img = Image.frombytes('RGB', (2000, 1704), fileBytes)
 		mem_img = BytesIO()
 		img.save(mem_img, 'PNG')
 
@@ -82,7 +82,7 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 		os.remove("./dltemp/" + filename)
 		
 		# Get the RGB pixel values from the image as a list of tuples that we will break up and then convert to a bytestring.
-		pixelVals = list(Image.open("./dltemp/" + dirname + "/word/media/image1.png").convert('RGBA').getdata())
+		pixelVals = list(Image.open("./dltemp/" + dirname + "/word/media/image1.png").convert('RGB').getdata())
 		pixelVals = [j for i in pixelVals for j in i]
 		pixelVals = array.array('B', pixelVals).tostring().rstrip(b'\x00')[:-1]
 		
