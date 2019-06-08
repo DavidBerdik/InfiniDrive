@@ -101,30 +101,31 @@ def download_docs(service, folderId, targetFolder):
 		pass
 	query = "'" +folderId + "' in parents"
 	page_token = None
+	files = list()
 	while True:
 		param = {}
 
 		if page_token:
-			param['page_token'] = page_token
+			param['pageToken'] = page_token
 
-		results = service.files().list(q=query, fields='files(id, name)', **param).execute()
-		files = results.get('files', []) #grabs all of the files from the folder
-
-		total = len(files)
-		count = 1
-		for file in reversed(files):
-			print('Downloading file ', count, ' of ', total)
-			request = service.files().export_media(fileId=file['id'], mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-			fh = io.FileIO(targetFolder +'/' +file['name'] + '.docx', 'wb')
-			downloader = MediaIoBaseDownload(fh, request)
-			done = False
-			while done is False:
-				status, done = downloader.next_chunk()
-				count =  count+1
+		results = service.files().list(q=query, fields='nextPageToken, files(id, name)', **param).execute()
+		files += results.get('files', []) #grabs all of the files from the folder
 
 		page_token = results.get('nextPageToken')
 		if not page_token:
 			break
+
+	total = len(files)
+	count = 1
+	for file in reversed(files):
+		print('Downloading file ', count, ' of ', total)
+		request = service.files().export_media(fileId=file['id'], mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+		fh = io.FileIO(targetFolder +'/' +file['name'] + '.docx', 'wb')
+		downloader = MediaIoBaseDownload(fh, request)
+		done = False
+		while done is False:
+			status, done = downloader.next_chunk()
+			count =  count+1
 
 def path_leaf(file_path):
 	head, tail = ntpath.split(file_path)
