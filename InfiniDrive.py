@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import array, docs, os, sys
+import array, driveAPI, os, sys
 
 from docx import Document
 from io import BytesIO
@@ -8,7 +8,7 @@ from PIL import Image
 
 if len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 	# Create Google Drive folder
-	driveConnect, dirId = docs.begin_storage(str(sys.argv[2]))
+	driveConnect, dirId = driveAPI.begin_storage(str(sys.argv[2]))
 	
 	# Get file byte size
 	fileSize = os.path.getsize(sys.argv[2])
@@ -47,17 +47,17 @@ if len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 		doc.save(mem_doc)
 		
 		# Upload Word document to Google Drive
-		docs.store_doc(driveConnect, dirId, str(docNum) + ".docx", mem_doc)
+		driveAPI.store_doc(driveConnect, dirId, str(docNum) + ".docx", mem_doc)
 	
 		# Increment docNum for next Word document and read next chunk of data.
 		docNum = docNum + 1
 		fileBytes = infile.read(readChunkSizes)
 			
 elif len(sys.argv) == 2 and str(sys.argv[1]) == "list":
-	docs.list_files(docs.get_service())
+	driveAPI.list_files(driveAPI.get_service())
 elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 	# Get a list of the files in the given folder.
-	files = docs.get_files_list_from_folder(docs.get_service(), str(sys.argv[2]))
+	files = driveAPI.get_files_list_from_folder(driveAPI.get_service(), str(sys.argv[2]))
 	
 	# Open a file at the user-specified path to write the data to
 	result = open(str(sys.argv[3]), "wb")
@@ -69,7 +69,7 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 		print('Downloading file', count, 'of', total)
 		
 		# Get the RGB pixel values from the image as a list of tuples that we will break up and then convert to a bytestring.
-		pixelVals = list(Image.open(docs.get_image_bytes_from_doc(docs.get_service(), file)).convert('RGB').getdata())
+		pixelVals = list(Image.open(driveAPI.get_image_bytes_from_doc(driveAPI.get_service(), file)).convert('RGB').getdata())
 		pixelVals = [j for i in pixelVals for j in i]
 		pixelVals = array.array('B', pixelVals).tostring().rstrip(b'\x00')[:-1]
 		
