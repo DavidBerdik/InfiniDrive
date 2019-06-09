@@ -6,7 +6,37 @@ from docx import Document
 from io import BytesIO
 from PIL import Image
 
-if len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
+def print_ascii_logo():
+	print("\n            ,,,                         ,,,")
+	print("      &@@@@@@@@@@@@@              @@@@@@@@@@@@@@")
+	print("    @@@@@@@#    %@@@@@#        @@@@@@@@@@@@@@@@@@@@")
+	print("  @@@@@@            #@@@     &@@@@@@@         @@@@@@")
+	print(" @@@@@                @@@@  @@@@@@@             @@@@@")
+	print(" @@@@                   @@@@@@@@@                @@@@@")
+	print("@@@@@                    @@@@@@@                  @@@@")
+	print("@@@@@                    @@@@@@                   @@@@#")
+	print("@@@@@                   @@@@@@                    @@@@,")
+	print("&@@@@                 &@@@@@@@@                  *@@@@")
+	print(" @@@@@               @@@@@@@ @@@                 @@@@@")
+	print("  @@@@@            *@@@@@@#   @@@               @@@@@")
+	print("   @@@@@@#       @@@@@@@@      @@@@#          @@@@@@")
+	print("    *@@@@@@@@@@@@@@@@@@          @@@@@@@@%@@@@@@@@")
+	print("       #@@@@@@@@@@@@               *@@@@@@@@@@@*\n")
+	print("InfiniDrive - An unlimited Google Drive storage solution")
+	print("by David Berdik, Steven Myrick, Noah Greenberg\n")
+
+if not os.path.exists('credentials.json'):
+	# Print an error message and exit if "credentials.json" is not present.
+	print('InfiniDrive could not start because you have not provided a "credentials.json" file.')
+	print('Please do so and try again. Instructions for doing this are available in "README.md"')
+	print('as well as online at https://github.com/DavidBerdik/InfiniDrive')
+elif not os.path.exists('token.pickle'):
+	# Display welcome message if "token.pickle" does not exist and complete Drive API authentication.
+	print_ascii_logo()
+	print("Welcome to InfiniDrive! Please complete account authentication using the following URL.")
+	print("You can then run your previous command again.\n")
+	driveAPI.get_service()
+elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 	# Create Google Drive folder
 	driveConnect, dirId = driveAPI.begin_storage(str(sys.argv[2]))
 	
@@ -79,23 +109,7 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 		
 	result.close()
 else:
-	print("\n            ,,,                         ,,,")
-	print("      &@@@@@@@@@@@@@              @@@@@@@@@@@@@@")
-	print("    @@@@@@@#    %@@@@@#        @@@@@@@@@@@@@@@@@@@@")
-	print("  @@@@@@            #@@@     &@@@@@@@         @@@@@@")
-	print(" @@@@@                @@@@  @@@@@@@             @@@@@")
-	print(" @@@@                   @@@@@@@@@                @@@@@")
-	print("@@@@@                    @@@@@@@                  @@@@")
-	print("@@@@@                    @@@@@@                   @@@@#")
-	print("@@@@@                   @@@@@@                    @@@@,")
-	print("&@@@@                 &@@@@@@@@                  *@@@@")
-	print(" @@@@@               @@@@@@@ @@@                 @@@@@")
-	print("  @@@@@            *@@@@@@#   @@@               @@@@@")
-	print("   @@@@@@#       @@@@@@@@      @@@@#          @@@@@@")
-	print("    *@@@@@@@@@@@@@@@@@@          @@@@@@@@%@@@@@@@@")
-	print("       #@@@@@@@@@@@@               *@@@@@@@@@@@*\n")
-	print("InfiniDrive - An unlimited Google Drive storage solution")
-	print("by David Berdik, Steven Myrick, Noah Greenberg\n")
+	print_ascii_logo()
 	print("help - Displays this help command.")
 	print("upload <file path> - Uploads specified file to Google Drive")
 	print("list - Lists the names of all Google Drive folders and their IDs")
