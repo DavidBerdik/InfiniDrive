@@ -62,8 +62,6 @@ def store_doc(service, folderId, file_name, file_path):
 									media_body=media,
 									fields = 'id').execute()
 
-	print('File created, ID: %s' % file.get('id'))
-
 #Returns folder id and service object for document insertion into the folder
 def begin_storage(file_path):
 	service = get_service()
@@ -80,7 +78,7 @@ def list_files(service):
 	else:
 		print('Folder List')
 		for folder in folders:
-			print(folder.get('name') + ' (ID: ' +folder.get('id') + ')')
+			print(folder.get('name') + ' | ID: ' +folder.get('id'))
 
 # Returns a list of files in a folder with the given ID
 def get_files_list_from_folder(service, folderId):

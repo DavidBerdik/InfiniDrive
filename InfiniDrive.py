@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import array, driveAPI, os, sys
+import array, driveAPI, math, os, sys
 
 from docx import Document
 from io import BytesIO
@@ -39,6 +39,8 @@ elif not os.path.exists('token.pickle'):
 elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 	# Create Google Drive folder
 	driveConnect, dirId = driveAPI.begin_storage(str(sys.argv[2]))
+	totalFrags = math.ceil(os.stat(sys.argv[2]).st_size / 10223999)
+	print('Upload started. Upload will be composed of ' + str(totalFrags) + ' fragments.')
 	
 	# Get file byte size
 	fileSize = os.path.getsize(sys.argv[2])
@@ -55,6 +57,8 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 	
 	# Keep looping until no more data is read.
 	while fileBytes:
+		print('Disassembling and uploading fragment ' + str(docNum) + ' of ' + str(totalFrags))
+
 		# Add a "spacer byte" at the end to indciate end of data and start of padding.
 		fileBytes += bytes([255])
 	
@@ -82,6 +86,9 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 		# Increment docNum for next Word document and read next chunk of data.
 		docNum = docNum + 1
 		fileBytes = infile.read(readChunkSizes)
+		
+	print('Upload complete!')
+	print('To download, use the following folder ID: ' + dirId)
 			
 elif len(sys.argv) == 2 and str(sys.argv[1]) == "list":
 	driveAPI.list_files(driveAPI.get_service())
@@ -96,7 +103,7 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 	total = len(files)
 	count = 1
 	for file in reversed(files):
-		print('Downloading file', count, 'of', total)
+		print('Downloading and reassembling fragment', count, 'of', total)
 		
 		# Get the RGB pixel values from the image as a list of tuples that we will break up and then convert to a bytestring.
 		pixelVals = list(Image.open(driveAPI.get_image_bytes_from_doc(driveAPI.get_service(), file)).convert('RGB').getdata())
@@ -108,6 +115,7 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 		count += 1
 		
 	result.close()
+	print('Download complete!')
 else:
 	print_ascii_logo()
 	print("help - Displays this help command.")
