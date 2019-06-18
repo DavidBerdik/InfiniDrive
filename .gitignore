@@ -10,5 +10,6 @@ dltemp/
 # Ignore "unlimited-drive.pyc" file
 unlimited-drive.pyc
 
-# Ignore "token.pickle" file
+# Ignore "credentials.json" and "token.pickle" files
+credentials.json
 token.pickle
