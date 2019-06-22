@@ -22,7 +22,7 @@ def print_ascii_logo():
 	print("   @@@@@@#       @@@@@@@@      @@@@#          @@@@@@")
 	print("    *@@@@@@@@@@@@@@@@@@          @@@@@@@@%@@@@@@@@")
 	print("       #@@@@@@@@@@@@               *@@@@@@@@@@@*\n")
-	print("InfiniDrive v1.0.0 - An unlimited Google Drive storage solution")
+	print("InfiniDrive v1.0.1 - An unlimited Google Drive storage solution")
 	print("by David Berdik, Steven Myrick, Noah Greenberg\n")
 
 if not os.path.exists('credentials.json'):
