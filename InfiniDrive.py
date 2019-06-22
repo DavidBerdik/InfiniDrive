@@ -89,7 +89,8 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 
 		# Run garbage collection. Hopefully, this will prevent process terminations by the operating system on memory-limited devices such as the Raspberry Pi.
 		gc.collect()
-		
+	
+	infile.close()
 	print('Upload complete!')
 	print('To download, use the following folder ID: ' + dirId)
 			
