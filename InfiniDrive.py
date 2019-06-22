@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import array, driveAPI, math, os, sys
+import array, driveAPI, gc, math, os, sys
 
 from docx import Document
 from io import BytesIO
@@ -86,6 +86,9 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 		# Increment docNum for next Word document and read next chunk of data.
 		docNum = docNum + 1
 		fileBytes = infile.read(readChunkSizes)
+
+		# Run garbage collection. Hopefully, this will prevent process terminations by the operating system on memory-limited devices such as the Raspberry Pi.
+		gc.collect()
 		
 	print('Upload complete!')
 	print('To download, use the following folder ID: ' + dirId)
@@ -113,6 +116,9 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 		# Write the data stored in "pixelVals" to the output file.
 		result.write(pixelVals)
 		count += 1
+
+		# Run garbage collection. Hopefully, this will prevent process terminations by the operating system on memory-limited devices such as the Raspberry Pi.
+		gc.collect()
 		
 	result.close()
 	print('Download complete!')
