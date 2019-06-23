@@ -81,7 +81,13 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 		doc.save(mem_doc)
 		
 		# Upload Word document to Google Drive
-		driveAPI.store_doc(driveConnect, dirId, str(docNum) + ".docx", mem_doc)
+		while True:
+			try:
+				driveAPI.store_doc(driveConnect, dirId, str(docNum) + ".docx", mem_doc)
+			except:
+				print('Fragment ' + str(docNum) + ' failed to upload. Retrying.')
+				continue
+			break
 	
 		# Increment docNum for next Word document and read next chunk of data.
 		docNum = docNum + 1
