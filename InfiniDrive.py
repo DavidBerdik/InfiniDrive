@@ -116,8 +116,14 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 		print('Downloading and reassembling fragment', count, 'of', total)
 		
 		# Get the RGB pixel values from the image as a list of tuples that we will break up and then convert to a bytestring.
-		pixelVals = list(Image.open(driveAPI.get_image_bytes_from_doc(driveAPI.get_service(), file)).convert('RGB').getdata())
-		pixelVals = [j for i in pixelVals for j in i]
+		while True:
+			pixelVals = list(Image.open(driveAPI.get_image_bytes_from_doc(driveAPI.get_service(), file)).convert('RGB').getdata())
+			pixelVals = [j for i in pixelVals for j in i]
+			if len(pixelVals) == 3:
+				print('Google Drive returned corrupted data for fragment ' + str(count) + '. Refetching.')
+			else:
+				break
+				
 		pixelVals = array.array('B', pixelVals).tostring().rstrip(b'\x00')[:-1]
 		
 		# Write the data stored in "pixelVals" to the output file.
