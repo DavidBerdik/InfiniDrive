@@ -50,7 +50,7 @@ Although InfiniDrive is an improvement over the base64 storage approach, it is c
 - Google Drive allows for Doc files to be up to 50MB in size, but limits that size to 10MB when uploaded via the API. There used to be a workaround for this. Perhaps an attempt can be made at implementing that workaround?
 - As mentioned earlier, taking advantage of PNG compression means that the resulting images are sometimes smaller than the data we are storing. In cases where an image's size is less than the data it is storing, we could pack more data in to the image. InfiniDrive does not currently do this, meaning that we often end up with wasted space per Doc. Perhaps we can try to calculate what an image's size will be before generating it, and add more data to it if the size allows?
 - If an upload or download gets interrupted, InfiniDrive does not support resuming processes from where they stopped.
-- InfiniDrive does not support error detection or correction.
+- InfiniDrive does not fully support error detection or correction. (**Note:** As of v1.0.3, minimal support for error detection is present to guard against Google Drive's 1x1 image bug. See [issue #17](https://github.com/DavidBerdik/InfiniDrive/issues/17#issuecomment-507069576) for more information.)
 
 ## Can I contribute?
 Yes! If you are interested in helping build InfiniDrive, feel free to submit a pull request. Bug reports are also appreciated.
