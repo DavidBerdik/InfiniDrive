@@ -87,7 +87,7 @@ def store_doc(service, folderId, file_name, file_path):
 	'parents': [folderId]
 	}
 	media = MediaIoBaseUpload(file_path, mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-	file = service.files().create(body=file_metadata,
+	service.files().create(body=file_metadata,
 									media_body=media,
 									fields = 'id').execute()
 
