@@ -99,7 +99,7 @@ def begin_storage(file_path):
 
 #Lists folders and their IDs (excluding folders in Trash)
 def list_files(service):
-	results = service.files().list(q="(mimeType='application/vnd.google-apps.folder') and (trashed=False)", fields="nextPageToken, files(id, name)").execute()
+	results = service.files().list(q="(mimeType='application/vnd.google-apps.folder') and (trashed=False) and ('" + get_root_folder_id(service) + "' in parents)", fields="nextPageToken, files(id, name)").execute()
 	folders = results.get('files', [])
 	
 	if(len(folders) == 0):
