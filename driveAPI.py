@@ -39,15 +39,44 @@ def get_service():
 	service = build('drive', 'v3', credentials=creds)
 	return service
 
+#Creates the InfiniDrive root folder and returns its ID.
+def create_root_folder(service):
+	root_meta = {
+		'name': "InfiniDrive Root",
+		'mimeType': 'application/vnd.google-apps.folder',
+		'properties': {'infinidriveRoot': 'true'},
+		'parents': []
+	}
+	root_folder = service.files().create(body=root_meta,
+		fields='id').execute()
+
+	# Hide the root folder folder
+	service.files().update(fileId=root_folder['id'], removeParents='root').execute()
+
+	return root_folder
+
+#Gets the ID of the InfiniDrive root folder.
+def get_root_folder_id(service):
+	results = service.files().list(
+		q="properties has {key='infinidriveRoot' and value='true'} and trashed=false",
+		pageSize=1,
+		fields="nextPageToken, files(id, name, properties)").execute()
+	folders = results.get('files', [])
+
+	if not folders:
+		return create_root_folder(service)['id']
+	else:
+		return folders[0]['id']
+
 #Creates a folder and returns its ID
 def create_folder(service, file_path):
 	folder_metadata = {
 	'name': file_path,
-	'mimeType': 'application/vnd.google-apps.folder'
+	'mimeType': 'application/vnd.google-apps.folder',
+	'parents': [get_root_folder_id(service)]
 	}
 	folder = service.files().create(body=folder_metadata, fields= 'id').execute()
 
-	#print('Folder created, ID: %s' % folder.get('id'))
 	return folder.get('id')
 
 #Stores a file into a folder
