@@ -5,6 +5,7 @@ import array, driveAPI, gc, math, os, sys
 from docx import Document
 from io import BytesIO
 from PIL import Image
+from tabulate import tabulate
 
 def print_ascii_logo():
 	print("\n            ,,,                         ,,,")
@@ -101,7 +102,12 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 	print('To download, use the following folder ID: ' + dirId)
 			
 elif len(sys.argv) == 2 and str(sys.argv[1]) == "list":
-	driveAPI.list_files(driveAPI.get_service())
+	filesList = driveAPI.list_files(driveAPI.get_service())
+	
+	if(len(filesList) == 0):
+		print('No InfiniDrive uploads found')
+	else:
+		print(tabulate(filesList, headers=['File Name', 'File ID']))
 elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 	# Get a list of the files in the given folder.
 	files = driveAPI.get_files_list_from_folder(driveAPI.get_service(), str(sys.argv[2]))

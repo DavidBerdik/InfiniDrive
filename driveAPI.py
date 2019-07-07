@@ -101,13 +101,8 @@ def begin_storage(file_path):
 def list_files(service):
 	results = service.files().list(q="(mimeType='application/vnd.google-apps.folder') and (trashed=False) and ('" + get_root_folder_id(service) + "' in parents)", fields="nextPageToken, files(id, name)").execute()
 	folders = results.get('files', [])
-	
-	if(len(folders) == 0):
-		print('No InfiniDrive uploads found')
-	else:
-		print('Folder List')
-		for folder in folders:
-			print(folder.get('name') + ' | ID: ' +folder.get('id'))
+	filesList = [[folder.get('name'), folder.get('id')] for folder in reversed(folders)]
+	return filesList
 
 # Returns a list of files in a folder with the given ID
 def get_files_list_from_folder(service, folderId):
