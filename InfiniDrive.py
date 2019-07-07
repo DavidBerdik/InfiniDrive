@@ -149,5 +149,5 @@ else:
 	print_ascii_logo()
 	print("help - Displays this help command.")
 	print("upload <file path> - Uploads specified file to Google Drive")
-	print("list - Lists the names of all Google Drive folders and their IDs")
-	print("download <folder ID> <file path> - Downloads the contents of the specified folder ID to the specified file path\n")
+	print("list - Lists the names of all InfiniDrive files and their IDs")
+	print("download <file ID> <file path> - Downloads the contents of the specified file ID to the specified file path\n")
