@@ -104,7 +104,7 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 						# The file name matches the upload ID, so delete the file.
 						while True:
 							try:
-								driveAPI.delete_file(driveAPI.get_service(), last_file['id'])
+								driveAPI.delete_file(driveAPI.get_service(), last_file)
 								break
 							except:
 								continue
