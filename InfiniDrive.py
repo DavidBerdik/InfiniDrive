@@ -167,9 +167,22 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 		
 	result.close()
 	print('Download complete!')
+elif len(sys.argv) == 3 and str(sys.argv[1]) == "delete":
+	# Repeatedly try deleting the folder until we succeed.
+	print('Deleting file.')
+	while True:
+		try:
+			driveAPI.delete_file(driveAPI.get_service(), str(sys.argv[2]))
+		except Exception as e:
+			print('Deletion failed. Retrying.')
+			print(e)
+			continue
+		break
+	print('File deletion complete.')
 else:
 	print_ascii_logo()
 	print("help - Displays this help command.")
 	print("upload <file path> - Uploads specified file to Google Drive")
 	print("list - Lists the names of all InfiniDrive files and their IDs")
-	print("download <file ID> <file path> - Downloads the contents of the specified file ID to the specified file path\n")
+	print("download <file ID> <file path> - Downloads the contents of the specified file ID to the specified file path")
+	print("delete <file ID> - Deletes the InfiniDrive file specified by the given ID")

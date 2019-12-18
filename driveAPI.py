@@ -106,7 +106,7 @@ def list_files(service):
 
 # Deletes the file with the given ID.
 def delete_file(service, file_id):
-	service.files().delete(fileId=id).execute()
+	service.files().delete(fileId=file_id).execute()
 
 # Returns a list of files in a folder with the given ID
 def get_files_list_from_folder(service, folderId):
