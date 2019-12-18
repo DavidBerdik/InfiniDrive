@@ -87,6 +87,28 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 				driveAPI.store_doc(driveConnect, dirId, str(docNum) + ".docx", mem_doc)
 			except:
 				print('Fragment ' + str(docNum) + ' failed to upload. Retrying.')
+				
+				# Before reattempting the upload, check if the upload actually succeeded. If it did, delete it and redo it.
+				while True:
+					try:
+						# Get the last file that was uploaded.
+						last_file = driveAPI.get_last_file_upload_info(driveAPI.get_service(), dirId)
+					except:
+						# If querying for the last uploaded file fails, try again.
+						continue
+					
+					if last_file == None or last_file['name'] != str(docNum):
+						# No file uploads have taken place yet or the file name does not match the upload ID, so break without doing anything.
+						break
+					elif last_file['name'] == str(docNum):
+						# The file name matches the upload ID, so delete the file.
+						while True:
+							try:
+								driveAPI.delete_file(driveAPI.get_service(), last_file['id'])
+								break
+							except:
+								continue
+						break
 				continue
 			break
 	

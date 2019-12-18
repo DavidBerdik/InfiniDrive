@@ -104,6 +104,10 @@ def list_files(service):
 	filesList = [[folder.get('name'), folder.get('id')] for folder in reversed(folders)]
 	return filesList
 
+# Deletes the file with the given ID.
+def delete_file(service, file_id):
+	service.files().delete(file_id=id).execute()
+
 # Returns a list of files in a folder with the given ID
 def get_files_list_from_folder(service, folderId):
 	query = "'" +folderId + "' in parents"
@@ -122,6 +126,15 @@ def get_files_list_from_folder(service, folderId):
 		if not page_token:
 			break
 	return files
+
+# Returns information on the last file that was uploaded to the folder with the given ID. Return None if no upload was made yet.
+def get_last_file_upload_info(service, folderId):
+	query = "'" +folderId + "' in parents"
+	param = {}
+	try:
+		return service.files().list(q=query, fields='files(id, name)', **param).execute().get('files', [])[0]
+	except IndexError:
+		return None
 
 # Returns the bytes from an image in a document
 def get_image_bytes_from_doc(service, file):
