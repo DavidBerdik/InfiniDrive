@@ -104,9 +104,9 @@ def list_files(service):
 	filesList = [[folder.get('name'), folder.get('id')] for folder in reversed(folders)]
 	return filesList
 
-# Deletes the given file.
-def delete_file(service, file):
-	service.files().delete(fileId=file['id']).execute()
+# Deletes the file with the given ID.
+def delete_file(service, file_id):
+	service.files().delete(fileId=id).execute()
 
 # Returns a list of files in a folder with the given ID
 def get_files_list_from_folder(service, folderId):
