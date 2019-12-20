@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import array, driveAPI, gc, math, os, sys
+import array, driveAPI, gc, math, os, sys, time
 
 from docx import Document
 from io import BytesIO
@@ -87,6 +87,7 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 				driveAPI.store_doc(driveConnect, dirId, str(docNum) + ".docx", mem_doc)
 			except:
 				print('Fragment ' + str(docNum) + ' failed to upload. Retrying.')
+				time.sleep(10) # Sleep for 10 seconds before checking for upload. This should hopefully prevent a race condition in which duplicates still occur.
 				
 				# Before reattempting the upload, check if the upload actually succeeded. If it did, delete it and redo it.
 				while True:
@@ -104,7 +105,9 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
 						# The file name matches the upload ID, so delete the file.
 						while True:
 							try:
+								time.sleep(10) # Sleep for 10 seconds for the same reason described earlier.
 								driveAPI.delete_file(driveAPI.get_service(), last_file['id'])
+								time.sleep(10) # Sleep for 10 seconds for the same reason described earlier.
 								break
 							except:
 								continue
