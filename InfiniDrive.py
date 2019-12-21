@@ -37,9 +37,17 @@ elif not os.path.exists('token.pickle'):
 	print("Welcome to InfiniDrive! Please complete account authentication using the following URL.")
 	print("You can then run your previous command again.\n")
 	driveAPI.get_service()
-elif len(sys.argv) == 3 and str(sys.argv[1]) == "upload":
+elif (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload":
+	# Get the name to use for the file.
+	if len(sys.argv) == 3:
+		# Use file path as name
+		file_name = str(sys.argv[2])
+	else:
+		# Use user-specified name
+		file_name = str(sys.argv[3])
+	
 	# Create Google Drive folder
-	driveConnect, dirId = driveAPI.begin_storage(str(sys.argv[2]))
+	driveConnect, dirId = driveAPI.begin_storage(file_name)
 	totalFrags = math.ceil(os.stat(sys.argv[2]).st_size / 10223999)
 	print('Upload started. Upload will be composed of ' + str(totalFrags) + ' fragments.')
 	
@@ -185,7 +193,7 @@ elif len(sys.argv) == 3 and str(sys.argv[1]) == "delete":
 else:
 	print_ascii_logo()
 	print("help - Displays this help command.")
-	print("upload <file path> - Uploads specified file to Google Drive")
+	print("upload <file path> <optional: file name> - Uploads specified file to Google Drive")
 	print("list - Lists the names of all InfiniDrive files and their IDs")
 	print("download <file ID> <file path> - Downloads the contents of the specified file ID to the specified file path")
 	print("delete <file ID> - Deletes the InfiniDrive file specified by the given ID")
