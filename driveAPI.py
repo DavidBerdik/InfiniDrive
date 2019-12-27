@@ -102,6 +102,7 @@ def list_files(service):
 	results = service.files().list(q="(mimeType='application/vnd.google-apps.folder') and (trashed=False) and ('" + get_root_folder_id(service) + "' in parents)", fields="nextPageToken, files(id, name)").execute()
 	folders = results.get('files', [])
 	filesList = [[folder.get('name'), folder.get('id')] for folder in reversed(folders)]
+	filesList.sort()
 	return filesList
 
 # Deletes the file with the given ID.
