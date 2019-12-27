@@ -140,7 +140,7 @@ elif len(sys.argv) == 2 and str(sys.argv[1]) == "list":
 	if(len(filesList) == 0):
 		print('No InfiniDrive uploads found')
 	else:
-		print(tabulate(filesList, headers=['File Name', 'File ID']))
+		print(tabulate(filesList, headers=['File Name', 'File ID'], tablefmt="psql"))
 elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 	# Get a list of the files in the given folder.
 	files = driveAPI.get_files_list_from_folder(driveAPI.get_service(), str(sys.argv[2]))
