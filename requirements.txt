@@ -1,5 +1,6 @@
 google-api-python-client
 google-auth-oauthlib
 pillow
+progress
 python-docx
 tabulate
