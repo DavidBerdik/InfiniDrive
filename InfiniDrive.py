@@ -2,11 +2,14 @@
 
 import array, driveAPI, gc, math, os, sys, time
 
+from bar import getpatchedprogress
 from docx import Document
 from io import BytesIO
 from PIL import Image
 from progress.bar import ShadyBar
 from tabulate import tabulate
+
+progress = getpatchedprogress()
 
 def print_ascii_logo():
 	print("\n            ,,,                         ,,,")
