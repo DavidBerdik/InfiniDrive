@@ -5,6 +5,7 @@ import array, driveAPI, gc, math, os, sys, time
 from docx import Document
 from io import BytesIO
 from PIL import Image
+from progress.bar import ShadyBar
 from tabulate import tabulate
 
 def print_ascii_logo():
@@ -64,10 +65,14 @@ elif (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload"
 	readChunkSizes = 10223999
 	fileBytes = infile.read(readChunkSizes)
 	
+	# Progress bar
+	upBar = ShadyBar('Uploading', max=totalFrags)
+	
 	# Keep looping until no more data is read.
 	while fileBytes:
-		print('Disassembling and uploading fragment ' + str(docNum) + ' of ' + str(totalFrags))
-
+		# Advance progress bar
+		upBar.next()
+	
 		# Add a "spacer byte" at the end to indciate end of data and start of padding.
 		fileBytes += bytes([255])
 	
@@ -94,7 +99,6 @@ elif (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload"
 			try:
 				driveAPI.store_doc(driveConnect, dirId, str(docNum) + ".docx", mem_doc)
 			except:
-				print('Fragment ' + str(docNum) + ' failed to upload. Retrying.')
 				time.sleep(10) # Sleep for 10 seconds before checking for upload. This should hopefully prevent a race condition in which duplicates still occur.
 				
 				# Before reattempting the upload, check if the upload actually succeeded. If it did, delete it and redo it.
@@ -122,7 +126,7 @@ elif (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload"
 						break
 				continue
 			break
-	
+
 		# Increment docNum for next Word document and read next chunk of data.
 		docNum = docNum + 1
 		fileBytes = infile.read(readChunkSizes)
@@ -131,6 +135,7 @@ elif (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload"
 		gc.collect()
 	
 	infile.close()
+	upBar.finish()
 	print('Upload complete!')
 	print('To download, use the following folder ID: ' + dirId)
 			
