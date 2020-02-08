@@ -141,7 +141,6 @@ elif (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload"
 	upBar.finish()
 	print('\nUpload complete!')
 	print('To download, use the following folder ID: ' + dirId)
-			
 elif len(sys.argv) == 2 and str(sys.argv[1]) == "list":
 	filesList = driveAPI.list_files(driveAPI.get_service())
 	
