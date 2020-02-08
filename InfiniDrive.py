@@ -3,11 +3,11 @@
 import array, driveAPI, gc, math, os, sys, time
 
 from bar import getpatchedprogress
-from docx import Document
 from io import BytesIO
 from PIL import Image
 from progress.bar import ShadyBar
 from tabulate import tabulate
+from uploadHandler import handle_upload_fragment
 
 progress = getpatchedprogress()
 
@@ -76,59 +76,7 @@ elif (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload"
 		# Advance progress bar
 		upBar.next()
 	
-		# Add a "spacer byte" at the end to indciate end of data and start of padding.
-		fileBytes += bytes([255])
-	
-		# Generate a new Word document.
-		doc = Document()
-		
-		# Pad the fragment with enough null bytes to reach the requirements for the image dimensions.
-		fileBytes += bytes(10224000 - len(fileBytes))
-		
-		# Generate and save a temporary PNG in memory.
-		img = Image.frombytes('RGB', (2000, 1704), fileBytes)
-		mem_img = BytesIO()
-		img.save(mem_img, 'PNG')
-
-		# Add temporary PNG to the Word document.
-		doc.add_picture(mem_img)
-		
-		# Save the generated Word document.
-		mem_doc = BytesIO()
-		doc.save(mem_doc)
-		
-		# Upload Word document to Google Drive
-		while True:
-			try:
-				driveAPI.store_doc(driveConnect, dirId, str(docNum) + ".docx", mem_doc)
-			except:
-				time.sleep(10) # Sleep for 10 seconds before checking for upload. This should hopefully prevent a race condition in which duplicates still occur.
-				
-				# Before reattempting the upload, check if the upload actually succeeded. If it did, delete it and redo it.
-				while True:
-					try:
-						# Get the last file that was uploaded.
-						last_file = driveAPI.get_last_file_upload_info(driveAPI.get_service(), dirId)
-					except:
-						# If querying for the last uploaded file fails, try again.
-						continue
-					
-					if last_file == None or last_file['name'] != str(docNum):
-						# No file uploads have taken place yet or the file name does not match the upload ID, so break without doing anything.
-						break
-					elif last_file['name'] == str(docNum):
-						# The file name matches the upload ID, so delete the file.
-						while True:
-							try:
-								time.sleep(10) # Sleep for 10 seconds for the same reason described earlier.
-								driveAPI.delete_file(driveAPI.get_service(), last_file['id'])
-								time.sleep(10) # Sleep for 10 seconds for the same reason described earlier.
-								break
-							except:
-								continue
-						break
-				continue
-			break
+		handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum)
 
 		# Increment docNum for next Word document and read next chunk of data.
 		docNum = docNum + 1
