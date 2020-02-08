@@ -159,21 +159,19 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 	# For all files that are in the list...
 	total = len(files)
 	count = 1
+	downBar = ShadyBar('Downloading...', max=total) # Progress bar
 	for file in reversed(files):
-		print('Downloading and reassembling fragment', count, 'of', total)
+		downBar.next()
 		
 		# Get the RGB pixel values from the image as a list of tuples that we will break up and then convert to a bytestring.
 		while True:
 			try:
 				pixelVals = list(Image.open(driveAPI.get_image_bytes_from_doc(driveAPI.get_service(), file)).convert('RGB').getdata())
 			except:
-				print('Fragment ' + str(count) + ' failed to download. Retrying.')
 				continue
 			pixelVals = [j for i in pixelVals for j in i]
 			if len(pixelVals) == 10224000:
 				break
-			else:
-				print('Google Drive returned corrupted data for fragment ' + str(count) + '. Refetching.')
 				
 		pixelVals = array.array('B', pixelVals).tostring().rstrip(b'\x00')[:-1]
 		
@@ -185,7 +183,8 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 		gc.collect()
 		
 	result.close()
-	print('Download complete!')
+	downBar.finish()
+	print('\nDownload complete!')
 elif len(sys.argv) == 3 and str(sys.argv[1]) == "delete":
 	# Repeatedly try deleting the folder until we succeed.
 	print('Deleting file.')
