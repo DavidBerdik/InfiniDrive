@@ -185,22 +185,35 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 	result.close()
 	downBar.finish()
 	print('\nDownload complete!')
-elif len(sys.argv) == 3 and str(sys.argv[1]) == "delete":
+elif len(sys.argv) >= 3 and str(sys.argv[1]) == "delete":
+	delConfirm = False
+	if len(sys.argv) == 4 and str(sys.argv[3]) == "force-delete":
+		# Force delete confirms the deletion.
+		delConfirm = True
+	else:
+		print('Please type "yes" (without quotes) to confirm your intent to delete this file.')
+		print('Type any other value to abort the deletion. - ', end = '')
+		if 'yes' == input(''):
+			delConfirm = True
+
 	# Repeatedly try deleting the folder until we succeed.
-	print('Deleting file.')
-	while True:
-		try:
-			driveAPI.delete_file(driveAPI.get_service(), str(sys.argv[2]))
-		except Exception as e:
-			print('Deletion failed. Retrying.')
-			print(e)
-			continue
-		break
-	print('File deletion complete.')
+	if delConfirm:
+		print('Deleting file.')
+		while True:
+			try:
+				driveAPI.delete_file(driveAPI.get_service(), str(sys.argv[2]))
+			except Exception as e:
+				print('Deletion failed. Retrying.')
+				print(e)
+				continue
+			break
+		print('File deletion complete.')
+	else:
+		print('File deletion aborted.')
 else:
 	print_ascii_logo()
 	print("help - Displays this help command.")
 	print("upload <file path> <optional: file name> - Uploads specified file to Google Drive")
 	print("list - Lists the names of all InfiniDrive files and their IDs")
 	print("download <file ID> <file path> - Downloads the contents of the specified file ID to the specified file path")
-	print("delete <file ID> - Deletes the InfiniDrive file specified by the given ID")
+	print("delete <file ID> <optional flag: force-delete>- Deletes the InfiniDrive file specified by the given ID")
