@@ -53,7 +53,7 @@ elif (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload"
 	# Create Google Drive folder
 	driveConnect, dirId = driveAPI.begin_storage(file_name)
 	totalFrags = math.ceil(os.stat(sys.argv[2]).st_size / 10223999)
-	print('Upload started. Upload will be composed of ' + str(totalFrags) + ' fragments.')
+	print('Upload started. Upload will be composed of ' + str(totalFrags) + ' fragments.\n')
 	
 	# Get file byte size
 	fileSize = os.path.getsize(sys.argv[2])
@@ -69,7 +69,7 @@ elif (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload"
 	fileBytes = infile.read(readChunkSizes)
 	
 	# Progress bar
-	upBar = ShadyBar('Uploading', max=totalFrags)
+	upBar = ShadyBar('Uploading...', max=totalFrags)
 	
 	# Keep looping until no more data is read.
 	while fileBytes:
@@ -139,7 +139,7 @@ elif (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload"
 	
 	infile.close()
 	upBar.finish()
-	print('Upload complete!')
+	print('\nUpload complete!')
 	print('To download, use the following folder ID: ' + dirId)
 			
 elif len(sys.argv) == 2 and str(sys.argv[1]) == "list":
