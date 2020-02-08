@@ -186,7 +186,6 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 	downBar.finish()
 	print('\nDownload complete!')
 elif len(sys.argv) >= 3 and str(sys.argv[1]) == "delete":
-	delConfirm = False
 	if len(sys.argv) == 4 and str(sys.argv[3]) == "force-delete":
 		# Force delete confirms the deletion.
 		delConfirm = True
