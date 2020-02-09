@@ -32,7 +32,6 @@ def handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum):
 		try:
 			driveAPI.store_doc(driveConnect, dirId, str(docNum) + ".docx", mem_doc)
 		except:
-			print(sys.exc_info())
 			time.sleep(10) # Sleep for 10 seconds before checking for upload. This should hopefully prevent a race condition in which duplicates still occur.
 			
 			# Before reattempting the upload, check if the upload actually succeeded. If it did, delete it and redo it.
@@ -41,7 +40,6 @@ def handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum):
 					# Get the last file that was uploaded.
 					last_file = driveAPI.get_last_file_upload_info(driveAPI.get_service(), dirId)
 				except:
-					print(sys.exc_info())
 					# If querying for the last uploaded file fails, try again.
 					continue
 				
@@ -57,7 +55,6 @@ def handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum):
 							time.sleep(10) # Sleep for 10 seconds for the same reason described earlier.
 							break
 						except:
-							print(sys.exc_info())
 							continue
 					break
 			continue
