@@ -1,13 +1,13 @@
 #!/usr/bin/python3
 
-import array, driveAPI, gc, math, os, sys, time
+import array, gc, libs.driveAPI as driveAPI, math, os, sys, time
 
-from bar import getpatchedprogress
 from io import BytesIO
+from libs.bar import getpatchedprogress
 from PIL import Image
 from progress.bar import ShadyBar
 from tabulate import tabulate
-from uploadHandler import handle_upload_fragment
+from libs.uploadHandler import handle_upload_fragment
 
 progress = getpatchedprogress()
 
