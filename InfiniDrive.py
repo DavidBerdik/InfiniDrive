@@ -202,7 +202,7 @@ elif len(sys.argv) >= 3 and str(sys.argv[1]) == "delete":
 else:
 	print_ascii_logo()
 	print("help - Displays this help command.")
-	print("upload <file path> <optional: file name> - Uploads specified file to Google Drive")
+	print("upload <file path OR http/https URL> <optional: file name> - Uploads specified file to Google Drive")
 	print("list - Lists the names of all InfiniDrive files and their IDs")
 	print("download <file ID> <file path> - Downloads the contents of the specified file ID to the specified file path")
 	print("delete <file ID> <optional flag: force-delete>- Deletes the InfiniDrive file specified by the given ID")
