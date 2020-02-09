@@ -6,6 +6,7 @@ from io import BytesIO
 from libs.bar import getpatchedprogress
 from PIL import Image
 from progress.bar import ShadyBar
+from progress.spinner import Spinner
 from tabulate import tabulate
 from libs.uploadHandler import handle_upload_fragment
 
@@ -52,15 +53,21 @@ elif (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload"
 	
 	# Determine if upload is taking place from an HTTP or HTTPS URL.
 	urlUpload = False
-	if sys.argv[2][0:4].lower() == "http":
+	if sys.argv[2][0:4].lower() == 'http':
 		urlUpload = True
 		urlUploadHandle = requests.get(sys.argv[2], stream=True, allow_redirects=True)
 	
 	# Create Google Drive folder
 	driveConnect, dirId = driveAPI.begin_storage(file_name)
 	if urlUpload:
-		remoteSizeReport = int(urlUploadHandle.headers.get('content-length'))
-		totalFrags = math.ceil(remoteSizeReport / 10223999)
+		try:
+			fileSize = int(urlUploadHandle.headers.get('content-length'))
+		except TypeError:
+			# If file size cannot be retrieved from the server it to -1.
+			fileSize = -1
+		if fileSize == -1:
+			# If fileSize is set to -1, set totalFrags to "an unknown number of"
+			totalFrags = 'an unknown number of'
 	else:
 		totalFrags = math.ceil(os.stat(sys.argv[2]).st_size / 10223999)
 	print('Upload started. Upload will be composed of ' + str(totalFrags) + ' fragments.\n')
@@ -72,13 +79,15 @@ elif (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload"
 	docNum = 1
 	
 	# Progress bar
-	upBar = ShadyBar('Uploading...', max=totalFrags)
+	if fileSize == -1:
+		# The file size is unknown
+		upBar = Spinner('Uploading... ')
+	else:
+		# The file size is known
+		upBar = ShadyBar('Uploading...', max=totalFrags)
 	
 	if urlUpload:
-		# If the upload is taking place from a URL...
-		# Get file byte size
-		fileSize = remoteSizeReport
-		
+		# If the upload is taking place from a URL...		
 		# Iterate through remote file until no more data is read.
 		for fileBytes in urlUploadHandle.iter_content(chunk_size=readChunkSizes):
 			# Advance progress bar
