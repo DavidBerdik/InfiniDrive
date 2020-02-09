@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import array, gc, libs.driveAPI as driveAPI, math, os, sys, time
+import array, gc, libs.driveAPI as driveAPI, math, os, requests, sys, time
 
 from io import BytesIO
 from libs.bar import getpatchedprogress
@@ -50,42 +50,76 @@ elif (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload"
 		# Use user-specified name
 		file_name = str(sys.argv[3])
 	
+	# Determine if upload is taking place from an HTTP or HTTPS URL.
+	urlUpload = False
+	if sys.argv[2][0:4].lower() == "http":
+		urlUpload = True
+		urlUploadHandle = requests.get(sys.argv[2], stream=True, allow_redirects=True)
+	
 	# Create Google Drive folder
 	driveConnect, dirId = driveAPI.begin_storage(file_name)
-	totalFrags = math.ceil(os.stat(sys.argv[2]).st_size / 10223999)
+	if urlUpload:
+		remoteSizeReport = int(urlUploadHandle.headers.get('content-length'))
+		totalFrags = math.ceil(remoteSizeReport / 10223999)
+	else:
+		totalFrags = math.ceil(os.stat(sys.argv[2]).st_size / 10223999)
 	print('Upload started. Upload will be composed of ' + str(totalFrags) + ' fragments.\n')
 	
-	# Get file byte size
-	fileSize = os.path.getsize(sys.argv[2])
+	# Set chunk size for reading files to 9.750365257263184MB (10223999 bytes)
+	readChunkSizes = 10223999
 	
 	# Doc number
 	docNum = 1
 	
-	# Iterate through file in 9.750365257263184MB (10223999 bytes) chunks.
-	infile = open(str(sys.argv[2]), 'rb')
-	
-	# Read an initial 9.750365257263184MB chunk from the file.
-	readChunkSizes = 10223999
-	fileBytes = infile.read(readChunkSizes)
-	
 	# Progress bar
 	upBar = ShadyBar('Uploading...', max=totalFrags)
 	
-	# Keep looping until no more data is read.
-	while fileBytes:
-		# Advance progress bar
-		upBar.next()
-	
-		handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum)
-
-		# Increment docNum for next Word document and read next chunk of data.
-		docNum = docNum + 1
+	if urlUpload:
+		# If the upload is taking place from a URL...
+		# Get file byte size
+		fileSize = remoteSizeReport
+		
+		# Iterate through remote file until no more data is read.
+		for fileBytes in urlUploadHandle.iter_content(chunk_size=readChunkSizes):
+			# Advance progress bar
+			upBar.next()
+			
+			# Process the fragment and upload it to Google Drive.
+			handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum)
+			
+			# Increment docNum for next Word document.
+			docNum = docNum + 1
+			
+			# Run garbage collection. Hopefully, this will prevent process terminations by the operating system on memory-limited devices such as the Raspberry Pi.
+			gc.collect()
+	else:
+		# If the upload is taking place from a file path...	
+		# Get file byte size
+		fileSize = os.path.getsize(sys.argv[2])
+		
+		# Iterate through file in chunks.
+		infile = open(str(sys.argv[2]), 'rb')
+		
+		# Read an initial chunk from the file.
 		fileBytes = infile.read(readChunkSizes)
+		
+		# Keep looping until no more data is read.
+		while fileBytes:
+			# Advance progress bar
+			upBar.next()
 
-		# Run garbage collection. Hopefully, this will prevent process terminations by the operating system on memory-limited devices such as the Raspberry Pi.
-		gc.collect()
+			# Process the fragment and upload it to Google Drive.
+			handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum)
+
+			# Increment docNum for next Word document and read next chunk of data.
+			docNum = docNum + 1
+			fileBytes = infile.read(readChunkSizes)
+
+			# Run garbage collection. Hopefully, this will prevent process terminations by the operating system on memory-limited devices such as the Raspberry Pi.
+			gc.collect()
+		
+		infile.close()
 	
-	infile.close()
 	upBar.finish()
 	print('\nUpload complete!')
 	print('To download, use the following folder ID: ' + dirId)
