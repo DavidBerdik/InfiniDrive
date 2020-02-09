@@ -3,4 +3,5 @@ google-auth-oauthlib
 pillow
 progress
 python-docx
+requests
 tabulate
