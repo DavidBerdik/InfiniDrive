@@ -70,6 +70,8 @@ elif (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload"
 			totalFrags = 'an unknown number of'
 	else:
 		fileSize = os.stat(sys.argv[2]).st_size
+	
+	if fileSize != -1:
 		totalFrags = math.ceil(fileSize / 10223999)
 	print('Upload started. Upload will be composed of ' + str(totalFrags) + ' fragments.\n')
 	
