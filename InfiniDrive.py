@@ -59,13 +59,12 @@ elif (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload"
 	
 	# Create Google Drive folder
 	driveConnect, dirId = driveAPI.begin_storage(file_name)
-	fileSize = -1
+	fileSize = -1 # If file is being uploaded from web server and size cannot be retrieved this will stay at -1.
 	if urlUpload:
 		try:
 			fileSize = int(urlUploadHandle.headers.get('content-length'))
 		except TypeError:
-			# If file size cannot be retrieved from the server it to -1.
-			fileSize = -1
+			pass
 		if fileSize == -1:
 			# If fileSize is set to -1, set totalFrags to "an unknown number of"
 			totalFrags = 'an unknown number of'
