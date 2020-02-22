@@ -70,7 +70,8 @@ elif (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload"
 			# If fileSize is set to -1, set totalFrags to "an unknown number of"
 			totalFrags = 'an unknown number of'
 	else:
-		totalFrags = math.ceil(os.stat(sys.argv[2]).st_size / 10223999)
+		fileSize = os.stat(sys.argv[2]).st_size
+		totalFrags = math.ceil(fileSize / 10223999)
 	print('Upload started. Upload will be composed of ' + str(totalFrags) + ' fragments.\n')
 	
 	# Set chunk size for reading files to 9.750365257263184MB (10223999 bytes)
