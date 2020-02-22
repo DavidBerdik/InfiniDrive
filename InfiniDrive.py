@@ -59,6 +59,7 @@ elif (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload"
 	
 	# Create Google Drive folder
 	driveConnect, dirId = driveAPI.begin_storage(file_name)
+	fileSize = -1
 	if urlUpload:
 		try:
 			fileSize = int(urlUploadHandle.headers.get('content-length'))
