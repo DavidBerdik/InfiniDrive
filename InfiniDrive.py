@@ -199,7 +199,6 @@ elif len(sys.argv) >= 3 and str(sys.argv[1]) == "delete":
 					print('File with ID ' + str(sys.argv[2]) + ' does not exist.')
 					break
 				print('Deletion failed. Retrying.')
-				print(e)
 				continue
 			else:
 				print('File deletion complete.')
