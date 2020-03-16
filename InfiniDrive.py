@@ -195,11 +195,15 @@ elif len(sys.argv) >= 3 and str(sys.argv[1]) == "delete":
 			try:
 				driveAPI.delete_file(driveAPI.get_service(), str(sys.argv[2]))
 			except Exception as e:
+				if(str(e)[:14] == "<HttpError 404"):
+					print('File with ID ' + str(sys.argv[2]) + ' does not exist.')
+					break
 				print('Deletion failed. Retrying.')
 				print(e)
 				continue
-			break
-		print('File deletion complete.')
+			else:
+				print('File deletion complete.')
+				break
 	else:
 		print('File deletion aborted.')
 else:
