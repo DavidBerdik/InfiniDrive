@@ -142,6 +142,13 @@ elif len(sys.argv) == 2 and str(sys.argv[1]) == "list":
 		print('No InfiniDrive uploads found')
 	else:
 		print(tabulate(filesList, headers=['File Name', 'File ID'], tablefmt="psql"))
+elif len(sys.argv) == 4 and str(sys.argv[1]) == "rename":
+	# Renames the file with the given ID using the given name.
+	try:
+		driveAPI.rename_file(driveAPI.get_service(), str(sys.argv[2]), str(sys.argv[3]))
+		print('File rename complete.')
+	except Exception as e:
+		print('File rename failed.')
 elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 	# Get a list of the files in the given folder.
 	files = driveAPI.get_files_list_from_folder(driveAPI.get_service(), str(sys.argv[2]))
@@ -210,5 +217,6 @@ else:
 	print("help - Displays this help command.")
 	print("upload <file path OR http/https URL> <optional: file name> - Uploads specified file to Google Drive")
 	print("list - Lists the names of all InfiniDrive files and their IDs")
+	print("rename <file ID> <new file name> - Renames the file with the specified ID to the specified new name")
 	print("download <file ID> <file path> - Downloads the contents of the specified file ID to the specified file path")
 	print("delete <file ID> <optional flag: force-delete>- Deletes the InfiniDrive file specified by the given ID")

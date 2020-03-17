@@ -109,6 +109,16 @@ def list_files(service):
 def delete_file(service, file_id):
 	service.files().delete(fileId=file_id).execute()
 
+# Renames the file with the given ID.
+def rename_file(service, file_id, new_name):
+	file = {'name': new_name}
+
+	# Rename the file.
+	service.files().update(
+		fileId=file_id,
+		body=file,
+		fields='name').execute()
+
 # Returns a list of files in a folder with the given ID
 def get_files_list_from_folder(service, folderId):
 	query = "'" +folderId + "' in parents"
