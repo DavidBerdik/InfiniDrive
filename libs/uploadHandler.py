@@ -1,4 +1,4 @@
-import sys, time
+import time
 
 from docx import Document
 from io import BytesIO
