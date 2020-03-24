@@ -20,6 +20,8 @@ InfiniDrive is a project that leverages Google Drive's API and "0 size file" rul
 
 Based on a SteelHacks 2019 project by David Berdik, Steven Myrick, and Noah Greenberg
 
+**⚠️ WARNING:** InfiniDrive currently has a bug which is known to cause intermittent corruption of data when uploading. This is a high-priority issue and no further feature development will take place on this project until it is resolved.
+
 [InfiniDrive Demo Video](https://youtu.be/8u1cwnONJ4E)
 
 ## How it Works
