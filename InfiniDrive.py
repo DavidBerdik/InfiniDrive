@@ -159,7 +159,7 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "rename":
 		debug_log.write("Old Name: " + str(sys.argv[2]) + "\n")
 		debug_log.write("New Name: " + str(sys.argv[3]) + "\n")
 		debug_log.write("Error:\n")
-		debug_log.write(e + "\n")
+		debug_log.write(str(e) + "\n")
 		print('An error occurred. Please report this issue on the InfiniDrive GitHub issue tracker and upload your "log.txt" file.')
 		print('File rename failed.')
 elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
@@ -184,7 +184,7 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 				debug_log.write("----------------------------------------\n")
 				debug_log.write("Fragment download failure\n")
 				debug_log.write("Error:\n")
-				debug_log.write(e + "\n")
+				debug_log.write(str(e) + "\n")
 				print('An error occurred. Please report this issue on the InfiniDrive GitHub issue tracker and upload your "log.txt" file.')
 				continue
 			pixelVals = [j for i in pixelVals for j in i]

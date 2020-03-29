@@ -35,7 +35,7 @@ def handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, deb
 			debug_log.write("----------------------------------------\n")
 			debug_log.write("Fragment upload failure\n")
 			debug_log.write("Error:\n")
-			debug_log.write(e + "\n")
+			debug_log.write(str(e) + "\n")
 			print('An error occurred. Please report this issue on the InfiniDrive GitHub issue tracker and upload your "log.txt" file.')
 			
 			time.sleep(10) # Sleep for 10 seconds before checking for upload. This should hopefully prevent a race condition in which duplicates still occur.
@@ -49,7 +49,7 @@ def handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, deb
 					# If querying for the last uploaded file fails, try again.
 					debug_log.write("	Nested failure - failure to query for last uploaded file\n")
 					debug_log.write("	Error:\n")
-					debug_log.write("	" + e + "\n")
+					debug_log.write("	" + str(e) + "\n")
 					continue
 				
 				if last_file == None or last_file['name'] != str(docNum):
@@ -66,7 +66,7 @@ def handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, deb
 						except Exception as e:
 							debug_log.write("	Nested failure - failure to delete corrupted bad upload\n")
 							debug_log.write("	Error:\n")
-							debug_log.write("	" + e + "\n")
+							debug_log.write("	" + str(e) + "\n")
 							continue
 					break
 			continue
