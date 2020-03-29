@@ -12,6 +12,12 @@ from libs.uploadHandler import handle_upload_fragment
 
 progress = getpatchedprogress()
 
+version = "1.0.13"
+
+# Open debugging log for writing
+debug_log = open("log.txt", "w")
+debug_log.write("Version: " + version + "\n\n")
+
 def print_ascii_logo():
 	print("\n            ,,,                         ,,,")
 	print("      &@@@@@@@@@@@@@              @@@@@@@@@@@@@@")
@@ -28,7 +34,7 @@ def print_ascii_logo():
 	print("   @@@@@@#       @@@@@@@@      @@@@#          @@@@@@")
 	print("    *@@@@@@@@@@@@@@@@@@          @@@@@@@@%@@@@@@@@")
 	print("       #@@@@@@@@@@@@               *@@@@@@@@@@@*\n")
-	print("InfiniDrive v1.0.13 - An unlimited Google Drive storage solution")
+	print("InfiniDrive v" + version + " - An unlimited Google Drive storage solution")
 	print("by David Berdik, Steven Myrick, Noah Greenberg\n")
 
 if not os.path.exists('credentials.json'):
@@ -97,7 +103,7 @@ elif (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload"
 			upBar.next()
 			
 			# Process the fragment and upload it to Google Drive.
-			handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum)
+			handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, debug_log)
 			
 			# Increment docNum for next Word document.
 			docNum = docNum + 1
@@ -121,7 +127,7 @@ elif (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload"
 			upBar.next()
 
 			# Process the fragment and upload it to Google Drive.
-			handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum)
+			handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, debug_log)
 
 			# Increment docNum for next Word document and read next chunk of data.
 			docNum = docNum + 1
@@ -148,6 +154,13 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "rename":
 		driveAPI.rename_file(driveAPI.get_service(), str(sys.argv[2]), str(sys.argv[3]))
 		print('File rename complete.')
 	except Exception as e:
+		debug_log.write("----------------------------------------\n")
+		debug_log.write("File rename failure\n")
+		debug_log.write("Old Name: " + str(sys.argv[2]) + "\n")
+		debug_log.write("New Name: " + str(sys.argv[3]) + "\n")
+		debug_log.write("Error:\n")
+		debug_log.write(e + "\n")
+		print('An error occurred. Please report this issue on the InfiniDrive GitHub issue tracker and upload your "log.txt" file.')
 		print('File rename failed.')
 elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 	# Get a list of the files in the given folder.
@@ -167,7 +180,12 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 		while True:
 			try:
 				pixelVals = list(Image.open(driveAPI.get_image_bytes_from_doc(driveAPI.get_service(), file)).convert('RGB').getdata())
-			except:
+			except Exception as e:
+				debug_log.write("----------------------------------------\n")
+				debug_log.write("Fragment download failure\n")
+				debug_log.write("Error:\n")
+				debug_log.write(e + "\n")
+				print('An error occurred. Please report this issue on the InfiniDrive GitHub issue tracker and upload your "log.txt" file.')
 				continue
 			pixelVals = [j for i in pixelVals for j in i]
 			if len(pixelVals) == 10224000:
@@ -220,3 +238,6 @@ else:
 	print("rename <file ID> <new file name> - Renames the file with the specified ID to the specified new name")
 	print("download <file ID> <file path> - Downloads the contents of the specified file ID to the specified file path")
 	print("delete <file ID> <optional flag: force-delete>- Deletes the InfiniDrive file specified by the given ID")
+
+debug_log.write("----------------------------------------\n")
+debug_log.write("Normal termination.")
