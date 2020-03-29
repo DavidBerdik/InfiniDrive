@@ -13,3 +13,6 @@ unlimited-drive.pyc
 # Ignore "credentials.json" and "token.pickle" files
 credentials.json
 token.pickle
+
+# Ignore debugging log
+log.txt
