@@ -237,7 +237,7 @@ else:
 	print("list - Lists the names of all InfiniDrive files and their IDs")
 	print("rename <file ID> <new file name> - Renames the file with the specified ID to the specified new name")
 	print("download <file ID> <file path> - Downloads the contents of the specified file ID to the specified file path")
-	print("delete <file ID> <optional flag: force-delete>- Deletes the InfiniDrive file specified by the given ID")
+	print("delete <file ID> <optional flag: force-delete> - Deletes the InfiniDrive file specified by the given ID")
 
 debug_log.write("----------------------------------------\n")
 debug_log.write("Normal termination.")
