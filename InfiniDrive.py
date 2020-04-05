@@ -12,7 +12,7 @@ from libs.uploadHandler import handle_upload_fragment
 
 progress = getpatchedprogress()
 
-version = "1.0.14"
+version = "1.0.15"
 
 # Open debugging log for writing
 debug_log = open("log.txt", "w")
