@@ -37,7 +37,7 @@ def handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, deb
 			debug_log.write("Error:\n")
 			debug_log.write(str(e) + "\n")
 			
-			time.sleep(10) # Sleep for 10 seconds before checking for upload. This should hopefully prevent a race condition in which duplicates still occur.
+			time.sleep(60) # Sleep for 1 minute before checking for upload. This should hopefully prevent a race condition in which duplicates still occur.
 			
 			# Before reattempting the upload, check if the upload actually succeeded. If it did, delete it and redo it.
 			while True:
@@ -58,9 +58,9 @@ def handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, deb
 					# The file name matches the upload ID, so delete the file.
 					while True:
 						try:
-							time.sleep(10) # Sleep for 10 seconds for the same reason described earlier.
+							time.sleep(60) # Sleep for 1 minute for the same reason described earlier.
 							driveAPI.delete_file(driveAPI.get_service(), last_file['id'])
-							time.sleep(10) # Sleep for 10 seconds for the same reason described earlier.
+							time.sleep(60) # Sleep for 1 minute for the same reason described earlier.
 							break
 						except Exception as e:
 							debug_log.write("	Nested failure - failure to delete corrupted bad upload\n")
