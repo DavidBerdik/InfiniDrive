@@ -36,7 +36,6 @@ def handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, deb
 			debug_log.write("Fragment upload failure\n")
 			debug_log.write("Error:\n")
 			debug_log.write(str(e) + "\n")
-			print('An error occurred. Please report this issue on the InfiniDrive GitHub issue tracker and upload your "log.txt" file.')
 			
 			time.sleep(10) # Sleep for 10 seconds before checking for upload. This should hopefully prevent a race condition in which duplicates still occur.
 			
