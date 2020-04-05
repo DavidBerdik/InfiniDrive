@@ -33,7 +33,7 @@ def handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, deb
 			driveAPI.store_doc(driveConnect, dirId, str(docNum) + ".docx", mem_doc)
 		except Exception as e:
 			debug_log.write("----------------------------------------\n")
-			debug_log.write("Fragment upload failure\n")
+			debug_log.write("Fragment upload failure. Fragment number is " + str(docNum) + ".\n")
 			debug_log.write("Error:\n")
 			debug_log.write(str(e) + "\n")
 			
