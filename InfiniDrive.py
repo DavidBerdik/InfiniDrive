@@ -139,7 +139,19 @@ elif (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload"
 		infile.close()
 	
 	upBar.finish()
-	print('\nUpload complete!')
+	
+	# If the number of fragments to expect from a file upload is known, verify that the upload is not corrupted.
+	if totalFrags != 'an unknown number of':
+		print('Verifying upload.')
+		foundFrags = len(driveAPI.get_files_list_from_folder(driveAPI.get_service(), dirId))
+		if(totalFrags != foundFrags):
+			debug_log.write("----------------------------------------\n")
+			debug_log.write("InfiniDrive detected upload corruption.\n")
+			debug_log.write("Expected Fragments: " + str(totalFrags) + "\n")
+			debug_log.write("Actual Fragments  : " + str(foundFrags) + "\n")
+			print('InfiniDrive has detected that your upload was corrupted. Please report this issue on the InfiniDrive GitHub issue tracker and upload your "log.txt" file.')
+	
+	print('Upload complete!')
 	print('To download, use the following folder ID: ' + dirId)
 elif len(sys.argv) == 2 and str(sys.argv[1]) == "list":
 	filesList = driveAPI.list_files(driveAPI.get_service())
