@@ -185,7 +185,6 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 				debug_log.write("Fragment download failure\n")
 				debug_log.write("Error:\n")
 				debug_log.write(str(e) + "\n")
-				print('An error occurred. Please report this issue on the InfiniDrive GitHub issue tracker and upload your "log.txt" file.')
 				continue
 			pixelVals = [j for i in pixelVals for j in i]
 			if len(pixelVals) == 10224000:
