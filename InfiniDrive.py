@@ -86,7 +86,10 @@ elif (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload"
 	
 	# Doc number
 	docNum = 1
-	
+
+	# Used to keep track of the numbers for fragments that have failed uploads.
+	failedFragmentsSet = set()
+
 	# Progress bar
 	if fileSize == -1:
 		# The file size is unknown
@@ -103,7 +106,7 @@ elif (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload"
 			upBar.next()
 			
 			# Process the fragment and upload it to Google Drive.
-			handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, debug_log)
+			handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, failedFragmentsSet, debug_log)
 			
 			# Increment docNum for next Word document.
 			docNum = docNum + 1
@@ -127,7 +130,7 @@ elif (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload"
 			upBar.next()
 
 			# Process the fragment and upload it to Google Drive.
-			handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, debug_log)
+			handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, failedFragmentsSet, debug_log)
 
 			# Increment docNum for next Word document and read next chunk of data.
 			docNum = docNum + 1
@@ -137,6 +140,20 @@ elif (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload"
 			gc.collect()
 		
 		infile.close()
+	
+	# For each document number in failedFragmentsSet, check for duplicates and remove any if they are present.
+	debug_log.write("----------------------------------------\n")
+	debug_log.write("Processing detected corruption...\n")
+	for name in failedFragmentsSet:
+		# Get duplicates. Throw away first entry since it will be the last uploaded version of a file and we want to keep it.
+		duplicates = driveAPI.get_files_with_name_from_folder(driveAPI.get_service(), dirId, name)[1:]
+		debug_log.write("	Processing corruption of fragments with name " + str(name) + "\n")
+		
+		# For each entry in the duplicates array...
+		for file in duplicates:
+			driveAPI.delete_file(driveAPI.get_service(), file['id'])
+			debug_log.write("		Removed corrupt duplicate with ID " + file['id'] + "\n")
+	debug_log.write("Processing of detected corruption completed.\n")
 	
 	upBar.finish()
 	

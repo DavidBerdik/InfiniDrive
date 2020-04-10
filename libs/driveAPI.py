@@ -138,14 +138,24 @@ def get_files_list_from_folder(service, folderId):
 			break
 	return files
 
-# Returns information on the last file that was uploaded to the folder with the given ID. Return None if no upload was made yet.
-def get_last_file_upload_info(service, folderId):
-	query = "'" +folderId + "' in parents"
-	param = {}
-	try:
-		return service.files().list(q=query, fields='files(id, name)', **param).execute().get('files', [])[0]
-	except IndexError:
-		return None
+# Returns a list of files in a folder with the given ID with the given name
+def get_files_with_name_from_folder(service, folderId, name):
+	query = "'" + folderId + "' in parents and name='" + str(name) + "'"
+	page_token = None
+	files = list()
+	while True:
+		param = {}
+
+		if page_token:
+			param['pageToken'] = page_token
+
+		results = service.files().list(q=query, fields='nextPageToken, files(id, name)', **param).execute()
+		files += results.get('files', []) #grabs all of the files from the folder
+
+		page_token = results.get('nextPageToken')
+		if not page_token:
+			break
+	return files
 
 # Returns the bytes from an image in a document
 def get_image_bytes_from_doc(service, file):
