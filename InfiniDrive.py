@@ -145,14 +145,31 @@ elif (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload"
 	debug_log.write("----------------------------------------\n")
 	debug_log.write("Processing detected corruption...\n")
 	for name in failedFragmentsSet:
-		# Get duplicates. Throw away first entry since it will be the last uploaded version of a file and we want to keep it.
-		duplicates = driveAPI.get_files_with_name_from_folder(driveAPI.get_service(), dirId, name)[1:]
+		# Get duplicates.
+		duplicates = driveAPI.get_files_with_name_from_folder(driveAPI.get_service(), dirId, name)
 		debug_log.write("	Processing corruption of fragments with name " + str(name) + "\n")
+		
+		# For tracking if we should check data validity
+		checkDataValidity = True
 		
 		# For each entry in the duplicates array...
 		for file in duplicates:
-			driveAPI.delete_file(driveAPI.get_service(), file['id'])
-			debug_log.write("		Removed corrupt duplicate with ID " + file['id'] + "\n")
+			if checkDataValidity:
+				# If we should check data validity, retrieve the file data and check that we have the correct number of bytes.
+				fileData = [j for i in list(Image.open(driveAPI.get_image_bytes_from_doc(driveAPI.get_service(), file)).convert('RGB').getdata()) for j in i]
+				if len(fileData) != 10224000:
+					# If data is missing, delete the fragment.
+					driveAPI.delete_file(driveAPI.get_service(), file['id'])
+					debug_log.write("		Removed corrupt duplicate with ID " + file['id'] + " | checkDataValidity = True\n")
+				else:
+					# If data is not missing, mark for no further validity checks and do not delete the file.
+					checkDataValidity = False
+					debug_log.write("		Validity check disabled\n")
+			else:
+				# If we should not check data validity, delete the file.
+				driveAPI.delete_file(driveAPI.get_service(), file['id'])
+				debug_log.write("		Removed corrupt duplicate with ID " + file['id'] + " | checkDataValidity = False\n")
+			
 	debug_log.write("Processing of detected corruption completed.\n")
 	
 	upBar.finish()
