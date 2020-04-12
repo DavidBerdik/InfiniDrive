@@ -1,5 +1,3 @@
-import time
-
 from binascii import crc32
 from docx import Document
 from io import BytesIO
