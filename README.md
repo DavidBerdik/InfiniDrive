@@ -60,7 +60,7 @@ InfiniDrive was developed as a proof-of-concept project. Although an effort has 
 
 --------------------------------------------------
 
-**Please note: InfiniDrive is built and tested with Python 3. Although it may work with Python 2, there are no guarantees and no plans to support it.**
+**Please note: InfiniDrive is not compatible with Python 2.**
 
 The base64 storage approach, referenced throughout this README, is available at https://github.com/stewartmcgown/uds.
 
