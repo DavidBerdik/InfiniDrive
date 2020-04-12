@@ -80,11 +80,12 @@ def create_folder(service, file_path):
 	return folder.get('id')
 
 #Stores a file into a folder
-def store_doc(service, folderId, file_name, file_path):
+def store_doc(service, folderId, file_name, crc32, file_path):
 	file_metadata = {
 	'name': file_name,
 	'mimeType': 'application/vnd.google-apps.document',
-	'parents': [folderId]
+	'parents': [folderId],
+	'properties': {'crc32': str(crc32)}
 	}
 	media = MediaIoBaseUpload(file_path, mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
 	service.files().create(body=file_metadata,
@@ -130,7 +131,7 @@ def get_files_list_from_folder(service, folderId):
 		if page_token:
 			param['pageToken'] = page_token
 
-		results = service.files().list(q=query, fields='nextPageToken, files(id, name)', **param).execute()
+		results = service.files().list(q=query, fields='nextPageToken, files(id, name, properties)', **param).execute()
 		files += results.get('files', []) #grabs all of the files from the folder
 
 		page_token = results.get('nextPageToken')
@@ -149,7 +150,7 @@ def get_files_with_name_from_folder(service, folderId, name):
 		if page_token:
 			param['pageToken'] = page_token
 
-		results = service.files().list(q=query, fields='nextPageToken, files(id, name)', **param).execute()
+		results = service.files().list(q=query, fields='nextPageToken, files(id, name, properties)', **param).execute()
 		files += results.get('files', []) #grabs all of the files from the folder
 
 		page_token = results.get('nextPageToken')

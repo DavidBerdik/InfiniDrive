@@ -2,6 +2,7 @@
 
 import array, gc, libs.driveAPI as driveAPI, math, os, requests, sys, time
 
+from binascii import crc32
 from io import BytesIO
 from libs.bar import getpatchedprogress
 from PIL import Image
@@ -155,16 +156,17 @@ elif (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload"
 		# For each entry in the duplicates array...
 		for file in duplicates:
 			if checkDataValidity:
-				# If we should check data validity, retrieve the file data and check that we have the correct number of bytes.
-				fileData = [j for i in list(Image.open(driveAPI.get_image_bytes_from_doc(driveAPI.get_service(), file)).convert('RGB').getdata()) for j in i]
-				if len(fileData) != 10224000:
-					# If data is missing, delete the fragment.
-					driveAPI.delete_file(driveAPI.get_service(), file['id'])
-					debug_log.write("		Removed corrupt duplicate with ID " + file['id'] + " | checkDataValidity = True\n")
-				else:
-					# If data is not missing, mark for no further validity checks and do not delete the file.
+				# If we should check data validity, retrieve the file data and compare the CRC32 hashes.
+				fileData = bytearray([j for i in list(Image.open(driveAPI.get_image_bytes_from_doc(driveAPI.get_service(), file)).convert('RGB').getdata()) for j in i])
+				
+				if(file['properties']['crc32'] == hex(crc32(fileData))):
+					# If the two hashes are identical, mark for no further validity checks and do not delete the file.
 					checkDataValidity = False
 					debug_log.write("		Validity check disabled\n")
+				else:
+					# If the hashes do not match, delete the fragment.
+					driveAPI.delete_file(driveAPI.get_service(), file['id'])
+					debug_log.write("		Removed corrupt duplicate with ID " + file['id'] + " | checkDataValidity = True\n")
 			else:
 				# If we should not check data validity, delete the file.
 				driveAPI.delete_file(driveAPI.get_service(), file['id'])
@@ -215,6 +217,9 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 	# Open a file at the user-specified path to write the data to
 	result = open(str(sys.argv[3]), "wb")
 	
+	# Download complete print flag
+	showDownloadComplete = True
+	
 	# For all files that are in the list...
 	total = len(files)
 	count = 1
@@ -236,6 +241,13 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 			if len(pixelVals) == 10224000:
 				break
 				
+		# Compare CRC32 hash stored with document to the CRC32 hash of pixelVals. If they do not match, terminate download and report corruption.
+		if(file['properties']['crc32'] != hex(crc32(bytearray(pixelVals)))):
+			downBar.finish()
+			print("\nError: InfiniDrive has detected that the file upload on Google Drive is corrupted and the download cannot complete.", end="")
+			showDownloadComplete = False
+			break
+		
 		pixelVals = array.array('B', pixelVals).tostring().rstrip(b'\x00')[:-1]
 		
 		# Write the data stored in "pixelVals" to the output file.
@@ -247,7 +259,8 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 		
 	result.close()
 	downBar.finish()
-	print('\nDownload complete!')
+	if showDownloadComplete:
+		print('\nDownload complete!')
 elif len(sys.argv) >= 3 and str(sys.argv[1]) == "delete":
 	if len(sys.argv) == 4 and str(sys.argv[3]) == "force-delete":
 		# Force delete confirms the deletion.

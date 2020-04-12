@@ -1,5 +1,6 @@
 import time
 
+from binascii import crc32
 from docx import Document
 from io import BytesIO
 from PIL import Image
@@ -14,6 +15,9 @@ def handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, fai
 
 	# Pad the fragment with enough null bytes to reach the requirements for the image dimensions.
 	fileBytes += bytes(10224000 - len(fileBytes))
+	
+	# Calculate CRC32 hash for fileBytes
+	hash = hex(crc32(fileBytes))
 
 	# Generate and save a temporary PNG in memory.
 	img = Image.frombytes('RGB', (2000, 1704), fileBytes)
@@ -30,7 +34,7 @@ def handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, fai
 	# Upload Word document to Google Drive
 	while True:
 		try:
-			driveAPI.store_doc(driveConnect, dirId, str(docNum) + ".docx", mem_doc)
+			driveAPI.store_doc(driveConnect, dirId, str(docNum) + ".docx", hash, mem_doc)
 		except Exception as e:
 			# If a fragment upload failure occurs, log the incident, add docNum to failedFragmentsSet,
 			# and try again.
