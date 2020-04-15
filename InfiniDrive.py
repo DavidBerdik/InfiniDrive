@@ -242,7 +242,7 @@ elif len(sys.argv) == 4 and str(sys.argv[1]) == "download":
 				break
 				
 		# Compare CRC32 hash stored with document to the CRC32 hash of pixelVals. If they do not match, terminate download and report corruption.
-		if(file['properties']['crc32'] != hex(crc32(bytearray(pixelVals)))):
+		if('properties' in file and file['properties']['crc32'] != hex(crc32(bytearray(pixelVals)))):
 			downBar.finish()
 			print("\nError: InfiniDrive has detected that the file upload on Google Drive is corrupted and the download cannot complete.", end="")
 			showDownloadComplete = False
