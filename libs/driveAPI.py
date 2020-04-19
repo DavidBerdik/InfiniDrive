@@ -100,9 +100,23 @@ def begin_storage(file_path):
 
 #Lists folders and their IDs (excluding folders in Trash)
 def list_files(service):
-	results = service.files().list(q="(mimeType='application/vnd.google-apps.folder') and (trashed=False) and ('" + get_root_folder_id(service) + "' in parents)", fields="nextPageToken, files(id, name)").execute()
-	folders = results.get('files', [])
-	filesList = [[folder.get('name'), folder.get('id')] for folder in reversed(folders)]
+	query = "(mimeType='application/vnd.google-apps.folder') and (trashed=False) and ('" + get_root_folder_id(service) + "' in parents)"
+	page_token = None
+	filesList = list()
+	while True:
+		param = {}
+		
+		if page_token:
+			param['pageToken'] = page_token
+		
+		results = service.files().list(q=query, fields="nextPageToken, files(id, name)", **param).execute()
+		filesList += results.get('files', [])
+		
+		page_token = results.get('nextPageToken')
+		if not page_token:
+			break
+	
+	filesList = [[folder.get('name'), folder.get('id')] for folder in filesList]
 	filesList.sort()
 	return filesList
 
