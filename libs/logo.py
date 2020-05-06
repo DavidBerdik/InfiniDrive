@@ -15,7 +15,7 @@ def print_ascii_logo(version):
 	print("    *@@@@@@@@@@@@@@@@@@          @@@@@@@@%@@@@@@@@")
 	print("       #@@@@@@@@@@@@               *@@@@@@@@@@@*\n")
 	print("InfiniDrive v" + version + " - An unlimited Google Drive storage solution")
-	print("by David Berdik, Steven Myrick, Noah Greenberg\n")
+	print("Based on a project by David Berdik, Steven Myrick, and Noah Greenberg\n")
 	print(">> help - Displays this help command.")
 	print(">> upload <file path OR http/https URL> <optional: file name> - Uploads specified file to Google Drive")
 	print(">> list - Lists the names of all InfiniDrive files and their IDs")
