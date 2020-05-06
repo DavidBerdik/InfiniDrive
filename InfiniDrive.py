@@ -1,3 +1,5 @@
+from libs.requirements import requirements
+
 import array, gc, libs.driveAPI as driveAPI, math, os, requests, sys, time
 
 from binascii import crc32
@@ -8,7 +10,6 @@ from progress.bar import ShadyBar
 from progress.spinner import Spinner
 from tabulate import tabulate
 from libs.logo import print_ascii_logo
-from libs.requirements import requirements
 from libs.uploadHandler import handle_upload_fragment
 
 class InfiniDrive:
