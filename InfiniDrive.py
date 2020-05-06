@@ -168,7 +168,6 @@ class InfiniDrive:
 		print('Upload complete!')
 		print('To download, use the following folder ID: ' + dirId)
 
-
 	def download(self):
 		# Get a list of the files in the given folder.
 		files = driveAPI.get_files_list_from_folder(driveAPI.get_service(), str(sys.argv[2]))
