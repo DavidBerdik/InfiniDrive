@@ -20,7 +20,7 @@ class InfiniDrive:
 		self.delConfirm = True
 		print_ascii_logo(self.version)
 		if (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload": self.upload()
-		elif len(sys.argv) == 2 and str(sys.argv[1]) == "list": self.List()
+		elif len(sys.argv) == 2 and str(sys.argv[1]) == "list": self.print_file_list()
 		elif len(sys.argv) == 4 and str(sys.argv[1]) == "rename": self.rename()
 		elif len(sys.argv) >= 3 and str(sys.argv[1]) == "delete": self.delete()
 		elif len(sys.argv) == 4 and str(sys.argv[1]) == "download": self.download()
@@ -234,7 +234,7 @@ class InfiniDrive:
 			print('An error occurred. Please report this issue on the InfiniDrive GitHub issue tracker and upload your "log.txt" file.')
 			print('File rename failed.')
 
-	def List(self):
+	def print_file_list(self):
 		filesList = driveAPI.list_files(driveAPI.get_service())
 		if(len(filesList) == 0):
 			print('No InfiniDrive uploads found')
