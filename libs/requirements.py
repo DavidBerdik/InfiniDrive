@@ -1,8 +1,6 @@
 class requirements:        
     def __init__(self):
-        print("\nChecking Requirements...\n")
         if self.check_imports() and self.check_credentials():
-            print("Requirements - Success\n\n\n")
             return
         quit()
     
