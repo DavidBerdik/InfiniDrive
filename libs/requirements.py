@@ -42,7 +42,3 @@ class requirements:
         return True
 
 requirements()
-
-    
-    
-    

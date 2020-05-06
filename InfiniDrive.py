@@ -267,7 +267,5 @@ class InfiniDrive:
                                         break
                 else:
                         print('File deletion aborted.')
-                        
-                
+
 InfiniDrive()
-        
