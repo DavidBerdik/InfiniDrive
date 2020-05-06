@@ -12,7 +12,7 @@ from libs.uploadHandler import handle_upload_fragment
 
 class InfiniDrive:
         def __init__(self):
-                self.version = "1.0.17"
+                self.version = "1.0.18"
                 self.debug_log = open("log.txt", "w")
                 self.progress = getpatchedprogress()
                 self.delConfirm = True
