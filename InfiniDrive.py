@@ -18,12 +18,14 @@ class InfiniDrive:
 		self.debug_log = open("log.txt", "w")
 		self.progress = getpatchedprogress()
 		self.delConfirm = True
-		print_ascii_logo(self.version)
+
 		if (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload": self.upload()
 		elif len(sys.argv) == 2 and str(sys.argv[1]) == "list": self.print_file_list()
 		elif len(sys.argv) == 4 and str(sys.argv[1]) == "rename": self.rename()
 		elif len(sys.argv) >= 3 and str(sys.argv[1]) == "delete": self.delete()
 		elif len(sys.argv) == 4 and str(sys.argv[1]) == "download": self.download()
+		else: print_ascii_logo(self.version)
+
 		self.debug_log.write("----------------------------------------\n")
 		self.debug_log.write("Normal termination.")
 
