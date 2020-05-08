@@ -49,7 +49,7 @@ class InfiniDrive:
                 while file_name in filesList:
                         ans = input("This file name already exists, do you wish to rewrite ? (y/n)\n")
                         if ans == 'y':
-                                ##Rewrite
+                                self.delete(file_name)
                                 break
                         else:
                                 file_name = input("Please enter new file name\n")
@@ -268,16 +268,23 @@ class InfiniDrive:
                         
                         
 
-        def delete(self):
+        def delete(self, file_name=None):
+		skip = True
+                if file_name == None:
+                        skip = False
+                        file_name = str(sys.argv[2])
                 Id = self.file_dict[str(sys.argv[2])]
-                if len(sys.argv) == 4 and str(sys.argv[3]) == "force-delete":
-                        # Force delete confirms the deletion.
-                        delConfirm = True
-                else:
-                        print('Please type "yes" (without quotes) to confirm your intent to delete this file.')
-                        print('Type any other value to abort the deletion. - ', end = '')
-                        if 'yes' == input(''):
+                if not skip:
+                        if len(sys.argv) == 4 and str(sys.argv[3]) == "force-delete":
+                                # Force delete confirms the deletion.
                                 delConfirm = True
+                        else:
+                                print('Please type "yes" (without quotes) to confirm your intent to delete this file.')
+                                print('Type any other value to abort the deletion. - ', end = '')
+                                if 'yes' == input(''):
+                                        delConfirm = True
+                else:
+                        delConfirm = True
 
                 # Repeatedly try deleting the folder until we succeed.
                 if delConfirm:
