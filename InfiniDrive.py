@@ -18,19 +18,26 @@ class InfiniDrive:
 		self.debug_log = open("log.txt", "w")
 		self.debug_log.write("Version: " + self.version + "\n\n")
 		self.progress = getpatchedprogress()
-		self.delConfirm = True
-
+		self.file_dict = dict()
+		self.file_dictionary()
 		if (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload": self.upload()
 		elif len(sys.argv) == 2 and str(sys.argv[1]) == "list": self.print_file_list()
 		elif len(sys.argv) == 4 and str(sys.argv[1]) == "rename": self.rename()
 		elif len(sys.argv) >= 3 and str(sys.argv[1]) == "delete": self.delete()
 		elif len(sys.argv) == 4 and str(sys.argv[1]) == "download": self.download()
-		else: print_ascii_logo(self.version)
-
+		elif len(sys.argv) == 2 and str(sys.argv[1]) == "help": print_ascii_logo(self.version)
+		else:
+			print("Not a valid Command, see 'help'. ")
 		self.debug_log.write("----------------------------------------\n")
 		self.debug_log.write("Normal termination.")
 
+	def file_dictionary(self):
+		filesList = driveAPI.list_files(driveAPI.get_service())
+		for file, Id in filesList:
+			self.file_dict[file] = str(Id)		  
+
 	def upload(self):
+		filesList = self.file_dict.keys()
 		# Get the name to use for the file.
 		if len(sys.argv) == 3:
 			# Use file path as name
@@ -38,6 +45,14 @@ class InfiniDrive:
 		else:
 			# Use user-specified name
 			file_name = str(sys.argv[3])
+
+		while file_name in filesList:
+			ans = input("This file name already exists, do you wish to rewrite ? (y/n)\n")
+			if ans == 'y':
+				self.delete(file_name)
+				break
+			else:
+				file_name = input("Please enter new file name\n")
 
 		# Determine if upload is taking place from an HTTP or HTTPS URL.
 		urlUpload = False
@@ -172,8 +187,14 @@ class InfiniDrive:
 		print('To download, use the following folder ID: ' + dirId)
 
 	def download(self):
+		if str(sys.argv[2]) not in self.file_dict:
+			print("File don't exist")
+			print("Please check your file name from the list")
+			self.print_file_list()
+			return
+		Id = self.file_dict[str(sys.argv[2])]
 		# Get a list of the files in the given folder.
-		files = driveAPI.get_files_list_from_folder(driveAPI.get_service(), str(sys.argv[2]))
+		files = driveAPI.get_files_list_from_folder(driveAPI.get_service(), Id)
 
 		# Open a file at the user-specified path to write the data to
 		result = open(str(sys.argv[3]), "wb")
@@ -209,7 +230,7 @@ class InfiniDrive:
 				showDownloadComplete = False
 				break
 
-			pixelVals = array.array('B', pixelVals).tostring().rstrip(b'\x00')[:-1]
+			pixelVals = array.array('B', pixelVals).tobytes().rstrip(b'\x00')[:-1]
 
 			# Write the data stored in "pixelVals" to the output file.
 			result.write(pixelVals)
@@ -225,7 +246,8 @@ class InfiniDrive:
 
 	def rename(self):
 		try:
-			driveAPI.rename_file(driveAPI.get_service(), str(sys.argv[2]), str(sys.argv[3]))
+			Id = self.file_dict[str(sys.argv[2])]
+			driveAPI.rename_file(driveAPI.get_service(), Id, str(sys.argv[3]))
 			print('File rename complete.')
 		except Exception as e:
 			self.debug_log.write("----------------------------------------\n")
@@ -238,31 +260,39 @@ class InfiniDrive:
 			print('File rename failed.')
 
 	def print_file_list(self):
-		filesList = driveAPI.list_files(driveAPI.get_service())
+		filesList = self.file_dict
 		if(len(filesList) == 0):
 			print('No InfiniDrive uploads found')
 		else:
-			print(tabulate(filesList, headers=['File Name', 'File ID'], tablefmt="psql"))
+			print(tabulate([i for i in zip(range(1, len(filesList.keys())+1), filesList.keys())], headers=['S.No', 'File Name'], tablefmt="psql"))
 
-	def delete(self):
-		if len(sys.argv) == 4 and str(sys.argv[3]) == "force-delete":
-			# Force delete confirms the deletion.
-			delConfirm = True
-		else:
-			print('Please type "yes" (without quotes) to confirm your intent to delete this file.')
-			print('Type any other value to abort the deletion. - ', end = '')
-			if 'yes' == input(''):
+	def delete(self, file_name=None):
+		skip = True
+		if file_name == None:
+			skip = False
+			file_name = str(sys.argv[2])
+		Id = self.file_dict[str(sys.argv[2])]
+		if not skip:
+			if len(sys.argv) == 4 and str(sys.argv[3]) == "force-delete":
+				# Force delete confirms the deletion.
 				delConfirm = True
+			else:
+				print('Please type "yes" (without quotes) to confirm your intent to delete this file.')
+				print('Type any other value to abort the deletion. - ', end = '')
+				if 'yes' == input(''):
+					delConfirm = True
+		else:
+			delConfirm = True
 
 		# Repeatedly try deleting the folder until we succeed.
 		if delConfirm:
 			print('Deleting file.')
 			while True:
 				try:
-					driveAPI.delete_file(driveAPI.get_service(), str(sys.argv[2]))
+					driveAPI.delete_file(driveAPI.get_service(), Id)
 				except Exception as e:
 					if(str(e)[:14] == "<HttpError 404"):
-						print('File with ID ' + str(sys.argv[2]) + ' does not exist.')
+						print(str(sys.argv[2]) + ' does not exist.')
 						break
 					print('Deletion failed. Retrying.')
 					continue
