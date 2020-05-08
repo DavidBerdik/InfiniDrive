@@ -5,12 +5,12 @@ import array, gc, libs.driveAPI as driveAPI, math, os, requests, sys, time
 from binascii import crc32
 from io import BytesIO
 from libs.bar import getpatchedprogress
+from libs.logo import print_ascii_logo
+from libs.uploadHandler import handle_upload_fragment
 from PIL import Image
 from progress.bar import ShadyBar
 from progress.spinner import Spinner
 from tabulate import tabulate
-from libs.logo import print_ascii_logo
-from libs.uploadHandler import handle_upload_fragment
 
 class InfiniDrive:
 	def __init__(self):
