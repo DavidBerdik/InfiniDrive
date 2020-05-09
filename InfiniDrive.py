@@ -40,12 +40,12 @@ class InfiniDrive:
 			file_name = str(sys.argv[3])
 
 		while driveAPI.file_with_name_exists(driveAPI.get_service(), file_name):
-			ans = input("This file name already exists, do you wish to rewrite ? (y/n)\n")
+			ans = input('A file with the name "' + str(file_name) + '" already exists. Would you like to overwrite it? (y/n) - ').lower()
 			if ans == 'y':
 				self.delete(file_name)
 				break
 			else:
-				file_name = input("Please enter new file name\n")
+				file_name = input("Please enter a new file name for this upload: ")
 
 		# Determine if upload is taking place from an HTTP or HTTPS URL.
 		urlUpload = False
