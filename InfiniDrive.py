@@ -5,7 +5,7 @@ import array, gc, libs.driveAPI as driveAPI, math, os, requests, sys, time
 from binascii import crc32
 from io import BytesIO
 from libs.bar import getpatchedprogress
-from libs.logo import print_ascii_logo
+from libs.help import print_help
 from libs.uploadHandler import handle_upload_fragment
 from PIL import Image
 from progress.bar import ShadyBar
@@ -24,7 +24,7 @@ class InfiniDrive:
 		elif len(sys.argv) == 4 and str(sys.argv[1]) == "rename": self.rename()
 		elif len(sys.argv) >= 3 and str(sys.argv[1]) == "delete": self.delete()
 		elif len(sys.argv) == 4 and str(sys.argv[1]) == "download": self.download()
-		elif len(sys.argv) == 2 and str(sys.argv[1]) == "help": print_ascii_logo(self.version)
+		elif len(sys.argv) == 2 and str(sys.argv[1]) == "help": print_help(self.version)
 		else: print("Not a valid Command, see 'help'. ")
 
 		self.debug_log.write("----------------------------------------\n")
