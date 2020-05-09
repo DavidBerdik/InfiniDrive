@@ -20,14 +20,15 @@ class InfiniDrive:
 		self.progress = getpatchedprogress()
 		self.file_dict = dict()
 		self.file_dictionary()
+
 		if (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload": self.upload()
 		elif len(sys.argv) == 2 and str(sys.argv[1]) == "list": self.print_file_list()
 		elif len(sys.argv) == 4 and str(sys.argv[1]) == "rename": self.rename()
 		elif len(sys.argv) >= 3 and str(sys.argv[1]) == "delete": self.delete()
 		elif len(sys.argv) == 4 and str(sys.argv[1]) == "download": self.download()
 		elif len(sys.argv) == 2 and str(sys.argv[1]) == "help": print_ascii_logo(self.version)
-		else:
-			print("Not a valid Command, see 'help'. ")
+		else: print("Not a valid Command, see 'help'. ")
+
 		self.debug_log.write("----------------------------------------\n")
 		self.debug_log.write("Normal termination.")
 
