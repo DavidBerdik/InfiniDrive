@@ -180,6 +180,11 @@ class InfiniDrive:
 		print('To download, use the following folder ID: ' + dirId)
 
 	def download(self):
+		# Check if the file exists. If it does not, print an error message and return.
+		if not driveAPI.file_with_name_exists(driveAPI.get_service(), sys.argv[2]):
+			print('File with name "' + str(sys.argv[2]) + '" does not exist.')
+			return
+		
 		# Get a list of the files in the given folder.
 		files = driveAPI.get_files_list_from_folder(driveAPI.get_service(), driveAPI.get_file_id_from_name(driveAPI.get_service(), sys.argv[2]))
 
