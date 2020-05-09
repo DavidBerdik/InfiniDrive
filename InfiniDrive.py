@@ -177,7 +177,6 @@ class InfiniDrive:
 				print('InfiniDrive has detected that your upload was corrupted. Please report this issue on the InfiniDrive GitHub issue tracker and upload your "log.txt" file.')
 
 		print('Upload complete!')
-		print('To download, use the following folder ID: ' + dirId)
 
 	def download(self):
 		# Check if the file exists. If it does not, print an error message and return.
