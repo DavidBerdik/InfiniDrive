@@ -68,6 +68,47 @@ def get_root_folder_id(service):
 	else:
 		return folders[0]['id']
 
+# Checks if an InfiniDrive upload with the given name exists. Returns true if file with names exists, else false.
+def file_with_name_exists(service, file_name):
+	query = "(mimeType='application/vnd.google-apps.folder') and (trashed=False) and ('" + get_root_folder_id(service) + "' in parents) and name='" + str(file_name) + "'"
+	page_token = None
+	filesList = list()
+	while True:
+		param = {}
+		
+		if page_token:
+			param['pageToken'] = page_token
+		
+		results = service.files().list(q=query, fields="nextPageToken, files(name)", **param).execute()
+		filesList += results.get('files', [])
+		
+		page_token = results.get('nextPageToken')
+		if not page_token:
+			break
+	
+	return len(filesList) > 0
+
+# Given a file name, returns the file ID.
+def get_file_id_from_name(service, file_name):
+	query = "(mimeType='application/vnd.google-apps.folder') and (trashed=False) and ('" + get_root_folder_id(service) + "' in parents) and name='" + str(file_name) + "'"
+	page_token = None
+	filesList = list()
+	while True:
+		param = {}
+		
+		if page_token:
+			param['pageToken'] = page_token
+		
+		results = service.files().list(q=query, fields="nextPageToken, files(id)", **param).execute()
+		filesList += results.get('files', [])
+		
+		page_token = results.get('nextPageToken')
+		if not page_token:
+			break
+	
+	if len(filesList) == 0: return ''
+	return [file.get('id') for file in filesList][0]
+
 #Creates a folder and returns its ID
 def create_folder(service, file_path):
 	folder_metadata = {
@@ -109,28 +150,28 @@ def list_files(service):
 		if page_token:
 			param['pageToken'] = page_token
 		
-		results = service.files().list(q=query, fields="nextPageToken, files(id, name)", **param).execute()
+		results = service.files().list(q=query, fields="nextPageToken, files(name)", **param).execute()
 		filesList += results.get('files', [])
 		
 		page_token = results.get('nextPageToken')
 		if not page_token:
 			break
 	
-	filesList = [[folder.get('name'), folder.get('id')] for folder in filesList]
+	filesList = [[folder.get('name')] for folder in filesList]
 	filesList.sort()
 	return filesList
 
 # Deletes the file with the given ID.
-def delete_file(service, file_id):
-	service.files().delete(fileId=file_id).execute()
+def delete_file(service, file_name):
+	service.files().delete(fileId=get_file_id_from_name(service, file_name)).execute()
 
-# Renames the file with the given ID.
-def rename_file(service, file_id, new_name):
+# Renames the file with the given name.
+def rename_file(service, old_name, new_name):
 	file = {'name': new_name}
 
 	# Rename the file.
 	service.files().update(
-		fileId=file_id,
+		fileId=get_file_id_from_name(service, old_name),
 		body=file,
 		fields='name').execute()
 

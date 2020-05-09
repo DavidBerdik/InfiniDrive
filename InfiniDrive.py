@@ -18,8 +18,6 @@ class InfiniDrive:
 		self.debug_log = open("log.txt", "w")
 		self.debug_log.write("Version: " + self.version + "\n\n")
 		self.progress = getpatchedprogress()
-		self.file_dict = dict()
-		self.file_dictionary()
 
 		if (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload": self.upload()
 		elif len(sys.argv) == 2 and str(sys.argv[1]) == "list": self.print_file_list()
@@ -32,13 +30,7 @@ class InfiniDrive:
 		self.debug_log.write("----------------------------------------\n")
 		self.debug_log.write("Normal termination.")
 
-	def file_dictionary(self):
-		filesList = driveAPI.list_files(driveAPI.get_service())
-		for file, Id in filesList:
-			self.file_dict[file] = str(Id)		  
-
 	def upload(self):
-		filesList = self.file_dict.keys()
 		# Get the name to use for the file.
 		if len(sys.argv) == 3:
 			# Use file path as name
@@ -47,7 +39,7 @@ class InfiniDrive:
 			# Use user-specified name
 			file_name = str(sys.argv[3])
 
-		while file_name in filesList:
+		while driveAPI.file_with_name_exists(driveAPI.get_service(), file_name):
 			ans = input("This file name already exists, do you wish to rewrite ? (y/n)\n")
 			if ans == 'y':
 				self.delete(file_name)
@@ -188,14 +180,8 @@ class InfiniDrive:
 		print('To download, use the following folder ID: ' + dirId)
 
 	def download(self):
-		if str(sys.argv[2]) not in self.file_dict:
-			print("File don't exist")
-			print("Please check your file name from the list")
-			self.print_file_list()
-			return
-		Id = self.file_dict[str(sys.argv[2])]
 		# Get a list of the files in the given folder.
-		files = driveAPI.get_files_list_from_folder(driveAPI.get_service(), Id)
+		files = driveAPI.get_files_list_from_folder(driveAPI.get_service(), driveAPI.get_file_id_from_name(driveAPI.get_service(), sys.argv[2]))
 
 		# Open a file at the user-specified path to write the data to
 		result = open(str(sys.argv[3]), "wb")
@@ -247,8 +233,7 @@ class InfiniDrive:
 
 	def rename(self):
 		try:
-			Id = self.file_dict[str(sys.argv[2])]
-			driveAPI.rename_file(driveAPI.get_service(), Id, str(sys.argv[3]))
+			driveAPI.rename_file(driveAPI.get_service(), str(sys.argv[2]), str(sys.argv[3]))
 			print('File rename complete.')
 		except Exception as e:
 			self.debug_log.write("----------------------------------------\n")
@@ -261,18 +246,17 @@ class InfiniDrive:
 			print('File rename failed.')
 
 	def print_file_list(self):
-		filesList = self.file_dict
+		filesList = driveAPI.list_files(driveAPI.get_service())
 		if(len(filesList) == 0):
 			print('No InfiniDrive uploads found')
 		else:
-			print(tabulate([i for i in zip(range(1, len(filesList.keys())+1), filesList.keys())], headers=['S.No', 'File Name'], tablefmt="psql"))
+			print(tabulate(filesList, headers=['Files'], tablefmt="psql"))
 
 	def delete(self, file_name=None):
 		skip = True
 		if file_name == None:
 			skip = False
 			file_name = str(sys.argv[2])
-		Id = self.file_dict[str(sys.argv[2])]
 		if not skip:
 			if len(sys.argv) == 4 and str(sys.argv[3]) == "force-delete":
 				# Force delete confirms the deletion.
@@ -290,11 +274,12 @@ class InfiniDrive:
 			print('Deleting file.')
 			while True:
 				try:
-					driveAPI.delete_file(driveAPI.get_service(), Id)
+					driveAPI.delete_file(driveAPI.get_service(), file_name)
 				except Exception as e:
 					if(str(e)[:14] == "<HttpError 404"):
-						print(str(sys.argv[2]) + ' does not exist.')
+						print('File with name ' + str(sys.argv[2]) + ' does not exist.')
 						break
+					print(e)
 					print('Deletion failed. Retrying.')
 					continue
 				else:
