@@ -25,7 +25,7 @@ class InfiniDrive:
 		elif len(sys.argv) >= 3 and str(sys.argv[1]) == "delete": self.delete()
 		elif len(sys.argv) == 4 and str(sys.argv[1]) == "download": self.download()
 		elif len(sys.argv) == 2 and str(sys.argv[1]) == "help": print_help(self.version)
-		else: print("Not a valid Command, see 'help'. ")
+		else: print("Invalid command. Please see the 'help' command for usage instructions.")
 
 		self.debug_log.write("----------------------------------------\n")
 		self.debug_log.write("Normal termination.")
