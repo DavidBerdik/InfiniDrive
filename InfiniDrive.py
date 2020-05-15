@@ -14,7 +14,7 @@ from tabulate import tabulate
 
 class InfiniDrive:
 	def __init__(self):
-		self.version = "1.0.18"
+		self.version = "1.0.19"
 		self.debug_log = open("log.txt", "w")
 		self.debug_log.write("Version: " + self.version + "\n\n")
 		self.progress = getpatchedprogress()
