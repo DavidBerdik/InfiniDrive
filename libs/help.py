@@ -22,4 +22,5 @@ def print_help(version):
 	print(">> list - Lists the names of all InfiniDrive files")
 	print(">> rename <current file name> <new file name> - Renames the file with the specified name to the specified new name")
 	print(">> download <file name> <file path> - Downloads the contents of the specified file name to the specified file path")
+	print(">> size <file name> - Lists the size of the specified InfiniDrive file")
 	print(">> delete <file name> <optional flag: force-delete> - Deletes the specified InfiniDrive file")

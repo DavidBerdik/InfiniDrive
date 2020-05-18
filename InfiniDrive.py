@@ -24,6 +24,7 @@ class InfiniDrive:
 		elif len(sys.argv) == 4 and str(sys.argv[1]) == "rename": self.rename()
 		elif len(sys.argv) >= 3 and str(sys.argv[1]) == "delete": self.delete()
 		elif len(sys.argv) == 4 and str(sys.argv[1]) == "download": self.download()
+		elif len(sys.argv) == 3 and str(sys.argv[1]) == "size": self.get_file_size()
 		elif len(sys.argv) == 2 and str(sys.argv[1]) == "help": print_help(self.version)
 		else: print("Invalid command. Please see the 'help' command for usage instructions.")
 
@@ -291,5 +292,39 @@ class InfiniDrive:
 					break
 		else:
 			print('File deletion aborted.')
+	
+	def get_file_size(self, file_name=None):
+		# Get the size of the given file.
+		if file_name == None:
+			file_name = str(sys.argv[2])
+
+		while True:
+			try:
+				# Get a list of the files in the given folder.
+				files = driveAPI.get_files_list_from_folder(driveAPI.get_service(), driveAPI.get_file_id_from_name(driveAPI.get_service(), sys.argv[2]))
+				
+				# Get the bytes from the last fragment.
+				last_frag_bytes_len = len(array.array('B', [j for i in list(Image.open(driveAPI.get_image_bytes_from_doc(driveAPI.get_service(), files[0])).convert('RGB').getdata()) for j in i]) \
+					.tobytes().rstrip(b'\x00')[:-1])
+				
+				# Calculate the number of bytes that make up the file.
+				file_size = ((len(files) - 1) * 10223999) + last_frag_bytes_len
+				
+				# Print the appropriate sizes.
+				print(sys.argv[2] + " File Size")
+				if file_size >= 1125899906842624: print(file_size / 1125899906842624, "Petabytes")
+				if file_size >= 1099511627776: print(file_size / 1099511627776, "Terabytes")
+				if file_size >= 1073741824: print(file_size / 1073741824, "Gigabytes")
+				if file_size >= 1048576: print(file_size / 1048576, "Megabytes")
+				if file_size >= 1024: print(file_size / 1024, "Kilobytes")
+				print(file_size, "bytes")
+				break
+			except Exception as e:
+				if(str(e)[:14] == "<HttpError 404"):
+						print('File with name ' + str(sys.argv[2]) + ' does not exist.')
+						break
+				print(e)
+				print('File size listing failed. Retrying.')
+				continue
 
 InfiniDrive()
