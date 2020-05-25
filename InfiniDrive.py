@@ -200,38 +200,39 @@ class InfiniDrive:
 			print('An error occurred. Please report this issue on the InfiniDrive GitHub issue tracker and upload your "log.txt" file.')
 			print('File rename failed.')
 
-	def delete(self, file_name=None):
-		skip = True
+	def delete(self, file_name=None, silent_delete=False):
 		if file_name == None:
-			skip = False
 			file_name = str(sys.argv[2])
-		if not skip:
-			if len(sys.argv) == 4 and str(sys.argv[3]) == "force-delete":
+
+		delConfirm = False
+		if len(sys.argv) == 4 and str(sys.argv[3]) == "force-delete":
 				# Force delete confirms the deletion.
 				delConfirm = True
-			else:
-				print('Please type "yes" (without quotes) to confirm your intent to delete this file.')
-				print('Type any other value to abort the deletion. - ', end = '')
-				if 'yes' == input(''):
-					delConfirm = True
 		else:
-			delConfirm = True
+			print('Please type "yes" (without quotes) to confirm your intent to delete this file.')
+			print('Type any other value to abort the deletion. - ', end = '')
+			if 'yes' == input(''):
+				delConfirm = True
 
 		# Repeatedly try deleting the folder until we succeed.
 		if delConfirm:
-			print('Deleting file.')
+			if not silent_delete:
+				print('Deleting file.')
 			while True:
 				try:
 					driveAPI.delete_file(driveAPI.get_service(), file_name)
 				except Exception as e:
 					if(str(e)[:14] == "<HttpError 404"):
-						print('File with name ' + str(sys.argv[2]) + ' does not exist.')
+						if not silent_delete:
+							print('File with name ' + str(sys.argv[2]) + ' does not exist.')
 						break
-					print(e)
-					print('Deletion failed. Retrying.')
+					if not silent_delete:
+						print(e)
+						print('Deletion failed. Retrying.')
 					continue
 				else:
-					print('File deletion complete.')
+					if not silent_delete:
+						print('File deletion complete.')
 					break
 		else:
 			print('File deletion aborted.')
