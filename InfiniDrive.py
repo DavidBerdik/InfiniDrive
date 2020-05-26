@@ -41,16 +41,18 @@ class InfiniDrive:
 			# Use user-specified name
 			file_name = str(sys.argv[3])
 
+		skip_new_dir_generation = False
 		while driveAPI.file_with_name_exists(driveAPI.get_service(), file_name):
 			ans = input('A file with the name "' + str(file_name) + '" already exists. Would you like to overwrite it? (y/n) - ').lower()
 			if ans == 'y':
-				self.delete(file_name, True)
+				skip_new_dir_generation = True
 				break
 			else:
 				file_name = input("Please enter a new file name for this upload: ")
 
 		# Create Google Drive folder
-		driveConnect, dirId = driveAPI.begin_storage(file_name)
+		if not skip_new_dir_generation:
+			driveConnect, dirId = driveAPI.begin_storage(file_name)
 
 		# Hand off the upload process to the update function.
 		self.update(file_name, str(sys.argv[2]))
@@ -145,7 +147,6 @@ class InfiniDrive:
 		
 		# Get a list of the fragments that currently make up the file. If this is a new upload, it should come back empty.
 		orig_fragments = driveAPI.get_files_list_from_folder(driveConnect, dirId)
-		print(orig_fragments)
 		
 		# Determine if upload is taking place from an HTTP or HTTPS URL.
 		urlUpload = False
