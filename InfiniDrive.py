@@ -23,6 +23,7 @@ class InfiniDrive:
 		elif len(sys.argv) == 2 and str(sys.argv[1]) == "list": self.print_file_list()
 		elif len(sys.argv) == 4 and str(sys.argv[1]) == "rename": self.rename()
 		elif len(sys.argv) == 4 and str(sys.argv[1]) == "download": self.download()
+		elif len(sys.argv) == 4 and str(sys.argv[1]) == "update": self.update()
 		elif len(sys.argv) == 3 and str(sys.argv[1]) == "size": self.get_file_size()
 		elif len(sys.argv) >= 3 and str(sys.argv[1]) == "delete": self.delete()
 		elif len(sys.argv) == 2 and str(sys.argv[1]) == "help": print_help(self.version)
@@ -48,14 +49,110 @@ class InfiniDrive:
 			else:
 				file_name = input("Please enter a new file name for this upload: ")
 
+		# Create Google Drive folder
+		driveConnect, dirId = driveAPI.begin_storage(file_name)
+
+		# Hand off the upload process to the update function.
+		self.update(file_name, str(sys.argv[2]))
+
+	def print_file_list(self):
+		filesList = driveAPI.list_files(driveAPI.get_service())
+		if(len(filesList) == 0):
+			print('No InfiniDrive uploads found')
+		else:
+			print(tabulate(filesList, headers=['Files'], tablefmt="psql"))
+
+	def rename(self):
+		try:
+			driveAPI.rename_file(driveAPI.get_service(), str(sys.argv[2]), str(sys.argv[3]))
+			print('File rename complete.')
+		except Exception as e:
+			self.debug_log.write("----------------------------------------\n")
+			self.debug_log.write("File rename failure\n")
+			self.debug_log.write("Old Name: " + str(sys.argv[2]) + "\n")
+			self.debug_log.write("New Name: " + str(sys.argv[3]) + "\n")
+			self.debug_log.write("Error:\n")
+			self.debug_log.write(str(e) + "\n")
+			print('An error occurred. Please report this issue on the InfiniDrive GitHub issue tracker and upload your "log.txt" file.')
+			print('File rename failed.')
+
+	def download(self):
+		# Check if the file exists. If it does not, print an error message and return.
+		if not driveAPI.file_with_name_exists(driveAPI.get_service(), sys.argv[2]):
+			print('File with name "' + str(sys.argv[2]) + '" does not exist.')
+			return
+		
+		# Get a list of the files in the given folder.
+		files = driveAPI.get_files_list_from_folder(driveAPI.get_service(), driveAPI.get_file_id_from_name(driveAPI.get_service(), sys.argv[2]))
+
+		# Open a file at the user-specified path to write the data to
+		result = open(str(sys.argv[3]), "wb")
+
+		# Download complete print flag
+		showDownloadComplete = True
+
+		# For all files that are in the list...
+		total = len(files)
+		count = 1
+		downBar = ShadyBar('Downloading...', max=total) # Progress bar
+		for file in reversed(files):
+			downBar.next()
+
+			# Get the RGB pixel values from the image as a list of tuples that we will break up and then convert to a bytestring.
+			while True:
+				try:
+					pixelVals = list(Image.open(driveAPI.get_image_bytes_from_doc(driveAPI.get_service(), file)).convert('RGB').getdata())
+				except Exception as e:
+					self.debug_log.write("----------------------------------------\n")
+					self.debug_log.write("Fragment download failure\n")
+					self.debug_log.write("Error:\n")
+					self.debug_log.write(str(e) + "\n")
+					continue
+				pixelVals = [j for i in pixelVals for j in i]
+				if len(pixelVals) == 10224000:
+					break
+
+			# Compare CRC32 hash stored with document to the CRC32 hash of pixelVals. If they do not match, terminate download and report corruption.
+			if('properties' in file and file['properties']['crc32'] != hex(crc32(bytearray(pixelVals)))):
+				downBar.finish()
+				print("\nError: InfiniDrive has detected that the file upload on Google Drive is corrupted and the download cannot complete.", end="")
+				showDownloadComplete = False
+				break
+
+			pixelVals = array.array('B', pixelVals).tobytes().rstrip(b'\x00')[:-1]
+
+			# Write the data stored in "pixelVals" to the output file.
+			result.write(pixelVals)
+			count += 1
+
+			# Run garbage collection. Hopefully, this will prevent process terminations by the operating system on memory-limited devices such as the Raspberry Pi.
+			gc.collect()
+
+		result.close()
+		downBar.finish()
+		if showDownloadComplete:
+			print('\nDownload complete!')
+	
+	def update(self, file_name=None, file_path=None):
+		# If no file name or file path is set, use the command line arguments.
+		if file_name == None and file_path == None:
+			file_name = sys.argv[2]
+			file_path = sys.argv[3]
+			
+		# Get Drive service and directory ID.
+		driveConnect = driveAPI.get_service()
+		dirId = driveAPI.get_file_id_from_name(driveConnect, file_name)
+		
+		# Get a list of the fragments that currently make up the file. If this is a new upload, it should come back empty.
+		orig_fragments = driveAPI.get_files_list_from_folder(driveConnect, dirId)
+		print(orig_fragments)
+		
 		# Determine if upload is taking place from an HTTP or HTTPS URL.
 		urlUpload = False
 		if sys.argv[2][0:4].lower() == 'http':
 			urlUpload = True
 			urlUploadHandle = requests.get(sys.argv[2], stream=True, allow_redirects=True)
 
-		# Create Google Drive folder
-		driveConnect, dirId = driveAPI.begin_storage(file_name)
 		fileSize = -1 # If file is being uploaded from web server and size cannot be retrieved this will stay at -1.
 		if urlUpload:
 			try:
@@ -178,84 +275,6 @@ class InfiniDrive:
 				print('InfiniDrive has detected that your upload was corrupted. Please report this issue on the InfiniDrive GitHub issue tracker and upload your "log.txt" file.')
 
 		print('Upload complete!')
-
-	def print_file_list(self):
-		filesList = driveAPI.list_files(driveAPI.get_service())
-		if(len(filesList) == 0):
-			print('No InfiniDrive uploads found')
-		else:
-			print(tabulate(filesList, headers=['Files'], tablefmt="psql"))
-
-	def rename(self):
-		try:
-			driveAPI.rename_file(driveAPI.get_service(), str(sys.argv[2]), str(sys.argv[3]))
-			print('File rename complete.')
-		except Exception as e:
-			self.debug_log.write("----------------------------------------\n")
-			self.debug_log.write("File rename failure\n")
-			self.debug_log.write("Old Name: " + str(sys.argv[2]) + "\n")
-			self.debug_log.write("New Name: " + str(sys.argv[3]) + "\n")
-			self.debug_log.write("Error:\n")
-			self.debug_log.write(str(e) + "\n")
-			print('An error occurred. Please report this issue on the InfiniDrive GitHub issue tracker and upload your "log.txt" file.')
-			print('File rename failed.')
-
-	def download(self):
-		# Check if the file exists. If it does not, print an error message and return.
-		if not driveAPI.file_with_name_exists(driveAPI.get_service(), sys.argv[2]):
-			print('File with name "' + str(sys.argv[2]) + '" does not exist.')
-			return
-		
-		# Get a list of the files in the given folder.
-		files = driveAPI.get_files_list_from_folder(driveAPI.get_service(), driveAPI.get_file_id_from_name(driveAPI.get_service(), sys.argv[2]))
-
-		# Open a file at the user-specified path to write the data to
-		result = open(str(sys.argv[3]), "wb")
-
-		# Download complete print flag
-		showDownloadComplete = True
-
-		# For all files that are in the list...
-		total = len(files)
-		count = 1
-		downBar = ShadyBar('Downloading...', max=total) # Progress bar
-		for file in reversed(files):
-			downBar.next()
-
-			# Get the RGB pixel values from the image as a list of tuples that we will break up and then convert to a bytestring.
-			while True:
-				try:
-					pixelVals = list(Image.open(driveAPI.get_image_bytes_from_doc(driveAPI.get_service(), file)).convert('RGB').getdata())
-				except Exception as e:
-					self.debug_log.write("----------------------------------------\n")
-					self.debug_log.write("Fragment download failure\n")
-					self.debug_log.write("Error:\n")
-					self.debug_log.write(str(e) + "\n")
-					continue
-				pixelVals = [j for i in pixelVals for j in i]
-				if len(pixelVals) == 10224000:
-					break
-
-			# Compare CRC32 hash stored with document to the CRC32 hash of pixelVals. If they do not match, terminate download and report corruption.
-			if('properties' in file and file['properties']['crc32'] != hex(crc32(bytearray(pixelVals)))):
-				downBar.finish()
-				print("\nError: InfiniDrive has detected that the file upload on Google Drive is corrupted and the download cannot complete.", end="")
-				showDownloadComplete = False
-				break
-
-			pixelVals = array.array('B', pixelVals).tobytes().rstrip(b'\x00')[:-1]
-
-			# Write the data stored in "pixelVals" to the output file.
-			result.write(pixelVals)
-			count += 1
-
-			# Run garbage collection. Hopefully, this will prevent process terminations by the operating system on memory-limited devices such as the Raspberry Pi.
-			gc.collect()
-
-		result.close()
-		downBar.finish()
-		if showDownloadComplete:
-			print('\nDownload complete!')
 
 	def get_file_size(self, file_name=None):
 		# Get the size of the given file.
