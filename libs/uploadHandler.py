@@ -5,17 +5,16 @@ from PIL import Image
 
 # Handles uploading of a fragment of data to Google Drive.
 def handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, failedFragmentsSet, debug_log):
-	# Add a "spacer byte" at the end to indciate end of data and start of padding.
+	# Add a "spacer byte" at the end to indciate end of data and start of padding and pad the fragment with
+	# enough null bytes to reach the requirements for the image dimensions.
 	fileBytes += bytes([255])
-
-	# Generate a new Word document.
-	doc = Document()
-
-	# Pad the fragment with enough null bytes to reach the requirements for the image dimensions.
 	fileBytes += bytes(10224000 - len(fileBytes))
 	
 	# Calculate CRC32 hash for fileBytes
 	hash = hex(crc32(fileBytes))
+
+	# Generate a new Word document.
+	doc = Document()
 
 	# Generate and save a temporary PNG in memory.
 	img = Image.frombytes('RGB', (2000, 1704), fileBytes)
