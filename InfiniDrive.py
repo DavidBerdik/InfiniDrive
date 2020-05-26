@@ -201,18 +201,19 @@ class InfiniDrive:
 			print('File rename failed.')
 
 	def delete(self, file_name=None, silent_delete=False):
-		if file_name == None:
+		if file_name != None:
+			delConfirm = True
+		else:	
 			file_name = str(sys.argv[2])
-
-		delConfirm = False
-		if len(sys.argv) == 4 and str(sys.argv[3]) == "force-delete":
-				# Force delete confirms the deletion.
-				delConfirm = True
-		else:
-			print('Please type "yes" (without quotes) to confirm your intent to delete this file.')
-			print('Type any other value to abort the deletion. - ', end = '')
-			if 'yes' == input(''):
-				delConfirm = True
+			delConfirm = False
+			if len(sys.argv) == 4 and str(sys.argv[3]) == "force-delete":
+					# Force delete confirms the deletion.
+					delConfirm = True
+			else:
+				print('Please type "yes" (without quotes) to confirm your intent to delete this file.')
+				print('Type any other value to abort the deletion. - ', end = '')
+				if 'yes' == input(''):
+					delConfirm = True
 
 		# Repeatedly try deleting the folder until we succeed.
 		if delConfirm:
