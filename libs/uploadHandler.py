@@ -13,20 +13,8 @@ def handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, fai
 	# Calculate CRC32 hash for fileBytes
 	hash = hex(crc32(fileBytes))
 
-	# Generate a new Word document.
-	doc = Document()
-
-	# Generate and save a temporary PNG in memory.
-	img = Image.frombytes('RGB', (2000, 1704), fileBytes)
-	mem_img = BytesIO()
-	img.save(mem_img, 'PNG')
-
-	# Add temporary PNG to the Word document.
-	doc.add_picture(mem_img)
-
-	# Save the generated Word document.
-	mem_doc = BytesIO()
-	doc.save(mem_doc)
+	# Generate a new Word document
+	mem_doc = generate_word_doc(fileBytes)
 
 	# Upload Word document to Google Drive
 	while True:
@@ -42,3 +30,23 @@ def handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, fai
 			failedFragmentsSet.add(docNum)
 			continue
 		break
+
+# Generates a Word document containing the fragment, saves the document to a BytesIO object, and returns the object.
+def generate_word_doc(fileBytes):
+	# Generate a new Word document.
+	doc = Document()
+
+	# Generate and save a temporary PNG in memory.
+	img = Image.frombytes('RGB', (2000, 1704), fileBytes)
+	mem_img = BytesIO()
+	img.save(mem_img, 'PNG')
+
+	# Add temporary PNG to the Word document.
+	doc.add_picture(mem_img)
+
+	# Save the generated Word document.
+	mem_doc = BytesIO()
+	doc.save(mem_doc)
+	
+	# Return the BytesIO object that stores the document.
+	return mem_doc
