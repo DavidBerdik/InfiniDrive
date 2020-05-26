@@ -43,7 +43,7 @@ class InfiniDrive:
 		while driveAPI.file_with_name_exists(driveAPI.get_service(), file_name):
 			ans = input('A file with the name "' + str(file_name) + '" already exists. Would you like to overwrite it? (y/n) - ').lower()
 			if ans == 'y':
-				self.delete(file_name)
+				self.delete(file_name, True)
 				break
 			else:
 				file_name = input("Please enter a new file name for this upload: ")
