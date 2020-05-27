@@ -6,16 +6,24 @@ class requirements:
 
 	def check_imports(self):
 		try:
-			import array, gc, libs.driveAPI as driveAPI, math, os, requests, sys, time
+			import array, gc, libs.driveAPI as driveAPI, math, os, os.path, pickle, requests, sys, time, zipfile
+			from apiclient.http import MediaIoBaseDownload
+			from apiclient.http import MediaIoBaseUpload
 			from binascii import crc32
+			from docx import Document
+			from googleapiclient.discovery import build
+			from google_auth_oauthlib.flow import InstalledAppFlow
+			from google.auth.transport.requests import Request
 			from hashlib import sha256
 			from io import BytesIO
 			from libs.bar import getpatchedprogress
+			from libs.help import print_help
+			from libs.uploadHandler import handle_update_fragment
+			from libs.uploadHandler import handle_upload_fragment
 			from PIL import Image
 			from progress.bar import ShadyBar
 			from progress.spinner import Spinner
 			from tabulate import tabulate
-			from libs.uploadHandler import handle_upload_fragment
 		except (ModuleNotFoundError, ImportError) as error:
 			print('\nOops! ', end = ' ')
 			print(error)
