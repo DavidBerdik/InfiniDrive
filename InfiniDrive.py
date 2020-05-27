@@ -148,6 +148,7 @@ class InfiniDrive:
 		
 		# Get a list of the fragments that currently make up the file. If this is a new upload, it should come back empty.
 		orig_fragments = driveAPI.get_files_list_from_folder(driveConnect, dirId)
+		orig_fragments.reverse()
 		
 		# Determine if upload is taking place from an HTTP or HTTPS URL.
 		urlUpload = False
