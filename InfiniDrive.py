@@ -152,9 +152,9 @@ class InfiniDrive:
 		
 		# Determine if upload is taking place from an HTTP or HTTPS URL.
 		urlUpload = False
-		if sys.argv[2][0:4].lower() == 'http':
+		if file_path[0:4].lower() == 'http':
 			urlUpload = True
-			urlUploadHandle = requests.get(sys.argv[2], stream=True, allow_redirects=True)
+			urlUploadHandle = requests.get(file_path, stream=True, allow_redirects=True)
 
 		fileSize = -1 # If file is being uploaded from web server and size cannot be retrieved this will stay at -1.
 		if urlUpload:
@@ -166,7 +166,7 @@ class InfiniDrive:
 				# If fileSize is set to -1, set totalFrags to "an unknown number of"
 				totalFrags = 'an unknown number of'
 		else:
-			fileSize = os.stat(sys.argv[2]).st_size
+			fileSize = os.stat(file_path).st_size
 
 		if fileSize != -1:
 			totalFrags = math.ceil(fileSize / 10223999)
@@ -216,10 +216,10 @@ class InfiniDrive:
 		else:
 			# If the upload is taking place from a file path...	
 			# Get file byte size
-			fileSize = os.path.getsize(sys.argv[2])
+			fileSize = os.path.getsize(file_path)
 
 			# Iterate through file in chunks.
-			infile = open(str(sys.argv[2]), 'rb')
+			infile = open(str(file_path), 'rb')
 
 			# Read an initial chunk from the file.
 			fileBytes = infile.read(readChunkSizes)
