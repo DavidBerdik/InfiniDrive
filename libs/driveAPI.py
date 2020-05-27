@@ -133,6 +133,18 @@ def store_doc(service, folderId, file_name, crc32, file_path):
 									media_body=media,
 									fields = 'id').execute()
 
+# Updates a given fragment
+def update_fragment(service, frag_id, crc32, file_path):
+	media = MediaIoBaseUpload(file_path, mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+	file_metadata = {
+	'properties': {'crc32': str(crc32)}
+	}
+	service.files().update(
+		fileId=frag_id,
+		body=file_metadata,
+		media_body=media,
+		fields='id').execute()
+
 #Returns folder id and service object for document insertion into the folder
 def begin_storage(file_path):
 	service = get_service()
