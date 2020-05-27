@@ -32,7 +32,7 @@ def handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, fai
 		break
 
 # Handles updating of a fragment of data to Google Drive.
-def handle_update_fragment(driveAPI, fileBytes, currentHash, driveConnect, fragId, docNum, failedFragmentsSet, debug_log):
+def handle_update_fragment(driveAPI, fileBytes, currentHash, driveConnect, fragId, docNum, debug_log):
 	# Add a "spacer byte" at the end to indciate end of data and start of padding and pad the fragment with
 	# enough null bytes to reach the requirements for the image dimensions.
 	fileBytes += bytes([255])
@@ -52,13 +52,11 @@ def handle_update_fragment(driveAPI, fileBytes, currentHash, driveConnect, fragI
 			try:
 				driveAPI.update_fragment(driveConnect, fragId, hash, mem_doc)
 			except Exception as e:
-				# If a fragment upload failure occurs, log the incident, add docNum to failedFragmentsSet,
-				# and try again.
+				# If a fragment upload failure occurs, log the incident and try again.
 				debug_log.write("----------------------------------------\n")
 				debug_log.write("Fragment upload failure. Fragment number is " + str(docNum) + ".\n")
 				debug_log.write("Error:\n")
 				debug_log.write(str(e) + "\n")
-				failedFragmentsSet.add(docNum)
 				continue
 			break
 

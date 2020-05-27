@@ -186,7 +186,7 @@ class InfiniDrive:
 			upBar = Spinner('Uploading... ')
 		else:
 			# The file size is known
-			upBar = ShadyBar('Uploading...', max=totalFrags)
+			upBar = ShadyBar('Uploading...', max=max(math.ceil(fileSize / 10223999), len(orig_fragments)))
 
 		if urlUpload:
 			# If the upload is taking place from a URL...		
@@ -202,7 +202,7 @@ class InfiniDrive:
 					if 'properties' in orig_fragments[docNum-1]:
 						currentHash = orig_fragments[docNum-1]['properties']['crc32']
 					# Process update.
-					handle_update_fragment(driveAPI, fileBytes, currentHash, driveConnect, orig_fragments[docNum-1]['id'], docNum, failedFragmentsSet, self.debug_log)
+					handle_update_fragment(driveAPI, fileBytes, currentHash, driveConnect, orig_fragments[docNum-1]['id'], docNum, self.debug_log)
 				else:
 					# Process the fragment and upload it to Google Drive.
 					handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, failedFragmentsSet, self.debug_log)
@@ -235,7 +235,7 @@ class InfiniDrive:
 					if 'properties' in orig_fragments[docNum-1]:
 						currentHash = orig_fragments[docNum-1]['properties']['crc32']
 					# Process update.
-					handle_update_fragment(driveAPI, fileBytes, currentHash, driveConnect, orig_fragments[docNum-1]['id'], docNum, failedFragmentsSet, self.debug_log)
+					handle_update_fragment(driveAPI, fileBytes, currentHash, driveConnect, orig_fragments[docNum-1]['id'], docNum, self.debug_log)
 				else:
 					# Process the fragment and upload it to Google Drive.
 					handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, failedFragmentsSet, self.debug_log)
@@ -248,6 +248,13 @@ class InfiniDrive:
 				gc.collect()
 
 			infile.close()
+		
+		# If an update took place and the new file had fewer fragments than the previous file, delete any leftover fragments from the previous upload.
+		docNum = docNum - 1
+		while docNum < len(orig_fragments):
+			upBar.next()
+			driveAPI.delete_file_by_id(driveAPI.get_service(), orig_fragments[docNum]['id'])
+			docNum = docNum + 1
 
 		# For each document number in failedFragmentsSet, check for duplicates and remove any if they are present.
 		self.debug_log.write("----------------------------------------\n")

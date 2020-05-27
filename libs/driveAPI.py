@@ -173,9 +173,13 @@ def list_files(service):
 	filesList.sort()
 	return filesList
 
-# Deletes the file with the given ID.
+# Deletes the file with the given name.
 def delete_file(service, file_name):
 	service.files().delete(fileId=get_file_id_from_name(service, file_name)).execute()
+
+# Deletes the file with the given ID.
+def delete_file_by_id(service, file_id):
+	service.files().delete(fileId=file_id).execute()
 
 # Renames the file with the given name.
 def rename_file(service, old_name, new_name):
