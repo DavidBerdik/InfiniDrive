@@ -65,4 +65,3 @@ InfiniDrive was developed as a proof-of-concept project. Although an effort has 
 The base64 storage approach, referenced throughout this README, is available at https://github.com/stewartmcgown/uds.
 
 InfiniDrive is based on a [SteelHacks 2019](http://steelhacks.com/) project submission by David Berdik, Steven Myrick, and Noah Greenberg.
-[![SteelHacks Logo](/res/steel.png)](http://steelhacks.com/)
