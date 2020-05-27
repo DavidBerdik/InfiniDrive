@@ -1,5 +1,6 @@
 from binascii import crc32
 from docx import Document
+from hashlib import sha256
 from io import BytesIO
 from PIL import Image
 
@@ -10,8 +11,9 @@ def handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, fai
 	fileBytes += bytes([255])
 	fileBytes += bytes(10224000 - len(fileBytes))
 	
-	# Calculate CRC32 hash for fileBytes
-	hash = hex(crc32(fileBytes))
+	# Calculate CRC32 and SHA256 hashes for fileBytes
+	hash_crc32 = hex(crc32(fileBytes))
+	hash_sha256 = sha256(fileBytes).hexdigest()
 
 	# Generate a new Word document
 	mem_doc = generate_word_doc(fileBytes)
@@ -19,7 +21,7 @@ def handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, fai
 	# Upload Word document to Google Drive
 	while True:
 		try:
-			driveAPI.store_doc(driveConnect, dirId, str(docNum) + ".docx", hash, mem_doc)
+			driveAPI.store_doc(driveConnect, dirId, str(docNum) + ".docx", hash_crc32, hash_sha256, mem_doc)
 		except Exception as e:
 			# If a fragment upload failure occurs, log the incident, add docNum to failedFragmentsSet,
 			# and try again.
@@ -32,25 +34,26 @@ def handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, fai
 		break
 
 # Handles updating of a fragment of data to Google Drive.
-def handle_update_fragment(driveAPI, fileBytes, currentHash, driveConnect, fragId, docNum, debug_log):
+def handle_update_fragment(driveAPI, fileBytes, currentHashCrc32, currentHashSha256, driveConnect, fragId, docNum, debug_log):
 	# Add a "spacer byte" at the end to indciate end of data and start of padding and pad the fragment with
 	# enough null bytes to reach the requirements for the image dimensions.
 	fileBytes += bytes([255])
 	fileBytes += bytes(10224000 - len(fileBytes))
 	
-	# Calculate CRC32 hash for fileBytes
-	hash = hex(crc32(fileBytes))
+	# Calculate CRC32 and SHA256 hashes for fileBytes
+	hash_crc32 = hex(crc32(fileBytes))
+	hash_sha256 = sha256(fileBytes).hexdigest()
 	
-	# Check if the CRC32 hash for the fragment in its current state is the same as the new fragment's hash. If they are not
+	# Check if the hashes for the fragment in its current state is the same as the new fragment's hash. If they are not
 	# the same, then update the fragment. If they are the same, then there is nothing to do.
-	if hash != currentHash:
+	if hash_crc32 != currentHashCrc32 or hash_sha256 != currentHashSha256:
 		# Generate a new Word document
 		mem_doc = generate_word_doc(fileBytes)
 
 		# Upload replacement Word document to Google Drive
 		while True:
 			try:
-				driveAPI.update_fragment(driveConnect, fragId, hash, mem_doc)
+				driveAPI.update_fragment(driveConnect, fragId, hash_crc32, hash_sha256, mem_doc)
 			except Exception as e:
 				# If a fragment upload failure occurs, log the incident and try again.
 				debug_log.write("----------------------------------------\n")

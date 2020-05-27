@@ -121,12 +121,15 @@ def create_folder(service, file_path):
 	return folder.get('id')
 
 #Stores a file into a folder
-def store_doc(service, folderId, file_name, crc32, file_path):
+def store_doc(service, folderId, file_name, crc32, sha256, file_path):
 	file_metadata = {
 	'name': file_name,
 	'mimeType': 'application/vnd.google-apps.document',
 	'parents': [folderId],
-	'properties': {'crc32': str(crc32)}
+	'properties': {
+			'crc32': str(crc32),
+			'sha256': str(sha256)
+		}
 	}
 	media = MediaIoBaseUpload(file_path, mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
 	service.files().create(body=file_metadata,
@@ -134,10 +137,13 @@ def store_doc(service, folderId, file_name, crc32, file_path):
 									fields = 'id').execute()
 
 # Updates a given fragment
-def update_fragment(service, frag_id, crc32, file_path):
+def update_fragment(service, frag_id, crc32, sha256, file_path):
 	media = MediaIoBaseUpload(file_path, mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
 	file_metadata = {
-	'properties': {'crc32': str(crc32)}
+	'properties': {
+			'crc32': str(crc32),
+			'sha256': str(sha256)
+		}
 	}
 	service.files().update(
 		fileId=frag_id,

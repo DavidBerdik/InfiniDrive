@@ -3,6 +3,7 @@ from libs.requirements import requirements
 import array, gc, libs.driveAPI as driveAPI, math, os, requests, sys, time
 
 from binascii import crc32
+from hashlib import sha256
 from io import BytesIO
 from libs.bar import getpatchedprogress
 from libs.help import print_help
@@ -115,8 +116,9 @@ class InfiniDrive:
 				if len(pixelVals) == 10224000:
 					break
 
-			# Compare CRC32 hash stored with document to the CRC32 hash of pixelVals. If they do not match, terminate download and report corruption.
-			if('properties' in file and file['properties']['crc32'] != hex(crc32(bytearray(pixelVals)))):
+			# Compare the hashes stored with document to the hashes of pixelVals. If they do not match, terminate download and report corruption.
+			if('properties' in file and (file['properties']['crc32'] != hex(crc32(bytearray(pixelVals))) or
+			  ('sha256' in file['properties'] and file['properties']['sha256'] != sha256(bytearray(pixelVals)).hexdigest()))):
 				downBar.finish()
 				print("\nError: InfiniDrive has detected that the file upload on Google Drive is corrupted and the download cannot complete.", end="")
 				showDownloadComplete = False
@@ -199,11 +201,14 @@ class InfiniDrive:
 				if docNum <= len(orig_fragments):
 					# A remote fragment is present, so update it.
 					# First, extract the hash value if present.
-					currentHash = ''
+					currentHashCrc32 = ''
+					currentHashSha256 = ''
 					if 'properties' in orig_fragments[docNum-1]:
-						currentHash = orig_fragments[docNum-1]['properties']['crc32']
+						currentHashCrc32 = orig_fragments[docNum-1]['properties']['crc32']
+						if 'sha256' in orig_fragments[docNum-1]['properties']:
+							currentHashSha256 = orig_fragments[docNum-1]['properties']['sha256']
 					# Process update.
-					handle_update_fragment(driveAPI, fileBytes, currentHash, driveConnect, orig_fragments[docNum-1]['id'], docNum, self.debug_log)
+					handle_update_fragment(driveAPI, fileBytes, currentHashCrc32, currentHashSha256, driveConnect, orig_fragments[docNum-1]['id'], docNum, self.debug_log)
 				else:
 					# Process the fragment and upload it to Google Drive.
 					handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, failedFragmentsSet, self.debug_log)
@@ -232,11 +237,14 @@ class InfiniDrive:
 				if docNum <= len(orig_fragments):
 					# A remote fragment is present, so update it.
 					# First, extract the hash value if present.
-					currentHash = ''
+					currentHashCrc32 = ''
+					currentHashSha256 = ''
 					if 'properties' in orig_fragments[docNum-1]:
-						currentHash = orig_fragments[docNum-1]['properties']['crc32']
+						currentHashCrc32 = orig_fragments[docNum-1]['properties']['crc32']
+						if 'sha256' in orig_fragments[docNum-1]['properties']:
+							currentHashSha256 = orig_fragments[docNum-1]['properties']['sha256']
 					# Process update.
-					handle_update_fragment(driveAPI, fileBytes, currentHash, driveConnect, orig_fragments[docNum-1]['id'], docNum, self.debug_log)
+					handle_update_fragment(driveAPI, fileBytes, currentHashCrc32, currentHashSha256, driveConnect, orig_fragments[docNum-1]['id'], docNum, self.debug_log)
 				else:
 					# Process the fragment and upload it to Google Drive.
 					handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, failedFragmentsSet, self.debug_log)
@@ -271,11 +279,11 @@ class InfiniDrive:
 			# For each entry in the duplicates array...
 			for file in duplicates:
 				if checkDataValidity:
-					# If we should check data validity, retrieve the file data and compare the CRC32 hashes.
+					# If we should check data validity, retrieve the file data and compare the hashes.
 					fileData = bytearray([j for i in list(Image.open(driveAPI.get_image_bytes_from_doc(driveAPI.get_service(), file)).convert('RGB').getdata()) for j in i])
 
-					if(file['properties']['crc32'] == hex(crc32(fileData))):
-						# If the two hashes are identical, mark for no further validity checks and do not delete the file.
+					if(file['properties']['crc32'] == hex(crc32(fileData)) and file['properties']['sha256'] == sha256(fileBytes).hexdigest()):
+						# If the hashes are identical, mark for no further validity checks and do not delete the file.
 						checkDataValidity = False
 						self.debug_log.write("		Validity check disabled\n")
 					else:

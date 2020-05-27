@@ -8,6 +8,7 @@ class requirements:
 		try:
 			import array, gc, libs.driveAPI as driveAPI, math, os, requests, sys, time
 			from binascii import crc32
+			from hashlib import sha256
 			from io import BytesIO
 			from libs.bar import getpatchedprogress
 			from PIL import Image
