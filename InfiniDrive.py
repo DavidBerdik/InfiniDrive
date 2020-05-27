@@ -6,6 +6,7 @@ from binascii import crc32
 from io import BytesIO
 from libs.bar import getpatchedprogress
 from libs.help import print_help
+from libs.uploadHandler import handle_update_fragment
 from libs.uploadHandler import handle_upload_fragment
 from PIL import Image
 from progress.bar import ShadyBar
@@ -194,8 +195,17 @@ class InfiniDrive:
 				# Advance progress bar
 				upBar.next()
 
-				# Process the fragment and upload it to Google Drive.
-				handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, failedFragmentsSet, self.debug_log)
+				if docNum <= len(orig_fragments):
+					# A remote fragment is present, so update it.
+					# First, extract the hash value if present.
+					currentHash = ''
+					if 'properties' in orig_fragments[docNum-1]:
+						currentHash = orig_fragments[docNum-1]['properties']['crc32']
+					# Process update.
+					handle_update_fragment(driveAPI, fileBytes, currentHash, driveConnect, orig_fragments[docNum-1]['id'], docNum, failedFragmentsSet, self.debug_log)
+				else:
+					# Process the fragment and upload it to Google Drive.
+					handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, failedFragmentsSet, self.debug_log)
 
 				# Increment docNum for next Word document.
 				docNum = docNum + 1
@@ -218,8 +228,17 @@ class InfiniDrive:
 				# Advance progress bar
 				upBar.next()
 
-				# Process the fragment and upload it to Google Drive.
-				handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, failedFragmentsSet, self.debug_log)
+				if docNum <= len(orig_fragments):
+					# A remote fragment is present, so update it.
+					# First, extract the hash value if present.
+					currentHash = ''
+					if 'properties' in orig_fragments[docNum-1]:
+						currentHash = orig_fragments[docNum-1]['properties']['crc32']
+					# Process update.
+					handle_update_fragment(driveAPI, fileBytes, currentHash, driveConnect, orig_fragments[docNum-1]['id'], docNum, failedFragmentsSet, self.debug_log)
+				else:
+					# Process the fragment and upload it to Google Drive.
+					handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, failedFragmentsSet, self.debug_log)
 
 				# Increment docNum for next Word document and read next chunk of data.
 				docNum = docNum + 1
