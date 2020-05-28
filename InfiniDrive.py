@@ -144,8 +144,15 @@ class InfiniDrive:
 			file_name = sys.argv[2]
 			file_path = sys.argv[3]
 			
-		# Get Drive service and directory ID.
+		# Get Drive service.
 		driveConnect = driveAPI.get_service()
+		
+		# Check if a remote file with the given name exists. If one does not, print an error message and return.
+		if not driveAPI.file_with_name_exists(driveConnect, file_name):
+			print('Remote file with name ' + file_name + ' does not exist.')
+			return
+		
+		# Get directory ID.
 		dirId = driveAPI.get_file_id_from_name(driveConnect, file_name)
 		
 		# Get a list of the fragments that currently make up the file. If this is a new upload, it should come back empty.
