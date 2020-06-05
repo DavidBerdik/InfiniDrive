@@ -1,7 +1,10 @@
 import libs.driveAPI as driveAPI
+import os
 
+from io import BytesIO
 from pyftpdlib.authorizers import DummyAuthorizer
 from pyftpdlib.handlers import BufferedIteratorProducer
+from pyftpdlib.handlers import FileProducer
 from pyftpdlib.handlers import FTPHandler
 from pyftpdlib.servers import FTPServer
 
@@ -32,6 +35,19 @@ class InfiniDriveFTPHandler(FTPHandler):
 		# Get list of files
 		return self.ftp_LIST(path)
 
+	def ftp_RETR(self, file):
+		# Download file
+		# Isolate the file name and the directory path
+		dirname, filename = os.path.split(file)
+		
+		# Create dummy file in memory to store as a placeholder for the actual file.
+		dummy_file = BytesIO()
+		dummy_file.name = filename
+		
+		producer = FileProducer(dummy_file, self._current_type)
+		self.push_dtp_data(producer, isproducer=True, file=dummy_file, cmd="RETR")
+		return file
+
 	def format_file_list(self, files):
 		# Emulates the output of "/bin/ls -lA" but fakes all other data for compatibility.
 		for file in files:
@@ -43,7 +59,7 @@ def init_ftp_server(user='user', password='password', port=21):
 
 	# Create authorizer for the server using the given username and password.
 	authorizer = DummyAuthorizer()
-	authorizer.add_user(user, password, '.', perm='lrdfw')
+	authorizer.add_user(user, password, '.', perm='elrdfw')
 
 	# Initialize InfiniDrive FTP Handler
 	handler = InfiniDriveFTPHandler
