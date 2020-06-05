@@ -52,8 +52,8 @@ def init_ftp_server(user='user', password='password', port=21):
 	# InfiniDrive FTP Server Banner
 	handler.banner = "Welcome to the InfiniDrive FTP server."
 
-	# Create the server. It should listen on 0.0.0.0:port
-	server = FTPServer(('', port), handler)
+	# Create the server. It should listen on localhost:port
+	server = FTPServer(('localhost', port), handler)
 
 	# Set maximum server connections
 	server.max_cons = 256
