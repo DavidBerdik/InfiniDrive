@@ -151,7 +151,8 @@ class FTPserverThread(threading.Thread):
 			self.conn.send(b'450 Delete failed.\r\n')
 
 	def RNFR(self,cmd):
-		self.rnfn=os.path.join(self.cwd,cmd[5:-2])
+		# Rename from command: store the current name of the file the user wants to rename.
+		self.rnfn=cmd[5:-2]
 		self.conn.send(b'350 Ready.\r\n')
 
 	def RNTO(self,cmd):
