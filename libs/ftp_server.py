@@ -1,7 +1,11 @@
 # Adapted from https://gist.github.com/risc987/184d49fa1a86e3c6c91c
 
-import os, socket, sys, threading, time
+import array, os, socket, sys, threading, time
 import libs.driveAPI as driveAPI
+
+from binascii import crc32
+from hashlib import sha256
+from PIL import Image
 
 allow_delete = True
 currdir=os.path.abspath('.')
@@ -122,6 +126,15 @@ class FTPserverThread(threading.Thread):
 		if self.pasv_mode:
 			self.servsock.close()
 
+	def SIZE(self,cmd):
+		# Gets the size of an InfiniDrive file
+		filename = cmd[5:-2].lstrip('/')
+		try:
+			file_size = driveAPI.get_file_size(self.drive_service, filename)
+			self.conn.send(('213 ' + str(file_size) + '\r\n').encode())
+		except:
+			self.conn.send(b'550 File not found.\r\n')
+
 	def LIST(self,cmd):
 		# Get the list of InfiniDrive files		
 		self.conn.send(b'150 Here comes the directory listing.\r\n')
@@ -171,23 +184,53 @@ class FTPserverThread(threading.Thread):
 		self.conn.send(b'250 File position reset.\r\n')
 
 	def RETR(self,cmd):
-		fn=os.path.join(self.cwd,cmd[5:-2])
-		#fn=os.path.join(self.cwd,cmd[5:-2]).lstrip('/')
-		print ('Downlowding:',fn)
-		if self.mode=='I':
-			fi=open(fn,'rb')
-		else:
-			fi=open(fn,'r')
+		# Downloads an InfiniDrive file
+		# Extract the name of the file to download from the command
+		filename = cmd[5:-2].lstrip('/')
+
+		# Open the data socket.
+		print ('Downloading:',filename)
 		self.conn.send(b'150 Opening data connection.\r\n')
+		self.start_datasock()
+
+		if not driveAPI.file_with_name_exists(self.drive_service, filename):
+			# Check if the file exists. If it does not, close the socket and send an error.
+			self.stop_datasock()
+			self.conn.send(b'551 File does not exist.\r\n')
+			return
+
+		# Get a list of the fragments that make up the given InfiniDrive file.
+		files = driveAPI.get_files_list_from_folder(self.drive_service, driveAPI.get_file_id_from_name(self.drive_service, filename))
+
+		# This is for managing the file position. I am not sure if we need this just yet, so I am keeping it for now.
 		if self.rest:
 			fi.seek(self.pos)
 			self.rest=False
-		data= fi.read(1024)
-		self.start_datasock()
-		while data:
-			self.datasock.send(data)
-			data=fi.read(1024)
-		fi.close()
+
+		# For all fragments...
+		for file in reversed(files):
+			# Get the RGB pixel values from the image as a list of tuples that we will break up and then convert to a bytestring.
+			while True:
+				try:
+					pixelVals = list(Image.open(driveAPI.get_image_bytes_from_doc(self.drive_service, file)).convert('RGB').getdata())
+				except Exception as e:
+					continue
+				pixelVals = [j for i in pixelVals for j in i]
+				if len(pixelVals) == 10224000:
+					break
+
+			# Compare the hashes stored with document to the hashes of pixelVals. If they do not match, terminate download and report corruption.
+			if('properties' in file and (file['properties']['crc32'] != hex(crc32(bytearray(pixelVals))) or
+			  ('sha256' in file['properties'] and file['properties']['sha256'] != sha256(bytearray(pixelVals)).hexdigest()))):
+				self.stop_datasock()
+				self.conn.send(b'551 File is corrupted.\r\n')
+				return
+
+			# Build the final byte array and send it to the client.
+			pixelVals = array.array('B', pixelVals).tobytes().rstrip(b'\x00')[:-1]
+			self.datasock.send(pixelVals)
+
+		# File transfer is complete. Close the data socket and report completion.
 		self.stop_datasock()
 		self.conn.send(b'226 Transfer complete.\r\n')
 

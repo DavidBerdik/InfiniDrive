@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import os.path, pickle, zipfile
+import array, os.path, pickle, zipfile
 
 from apiclient.http import MediaIoBaseDownload
 from apiclient.http import MediaIoBaseUpload
@@ -8,6 +8,7 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from io import BytesIO
+from PIL import Image
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/drive']
@@ -196,6 +197,19 @@ def rename_file(service, old_name, new_name):
 		fileId=get_file_id_from_name(service, old_name),
 		body=file,
 		fields='name').execute()
+
+# Returns the size of the file with the given name in bytes.
+def get_file_size(service, file_name):
+	# Get a list of the files in the given folder.
+	files = get_files_list_from_folder(service, get_file_id_from_name(service, file_name))
+	
+	# Get the bytes from the last fragment.
+	last_frag_bytes_len = len(array.array('B', [j for i in list(Image.open(get_image_bytes_from_doc(service, files[0])).convert('RGB').getdata()) for j in i]) \
+		.tobytes().rstrip(b'\x00')[:-1])
+	
+	# Calculate the number of bytes that make up the file.
+	file_size = ((len(files) - 1) * 10223999) + last_frag_bytes_len
+	return file_size
 
 # Returns a list of files in a folder with the given ID
 def get_files_list_from_folder(service, folderId):

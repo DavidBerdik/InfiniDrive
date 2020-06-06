@@ -328,16 +328,9 @@ class InfiniDrive:
 
 		while True:
 			try:
-				# Get a list of the files in the given folder.
-				files = driveAPI.get_files_list_from_folder(driveAPI.get_service(), driveAPI.get_file_id_from_name(driveAPI.get_service(), sys.argv[2]))
-				
-				# Get the bytes from the last fragment.
-				last_frag_bytes_len = len(array.array('B', [j for i in list(Image.open(driveAPI.get_image_bytes_from_doc(driveAPI.get_service(), files[0])).convert('RGB').getdata()) for j in i]) \
-					.tobytes().rstrip(b'\x00')[:-1])
-				
-				# Calculate the number of bytes that make up the file.
-				file_size = ((len(files) - 1) * 10223999) + last_frag_bytes_len
-				
+				# Get the size of the given file
+				file_size = driveAPI.get_file_size(driveAPI.get_service(), sys.argv[2])
+
 				# Print the appropriate sizes.
 				print(sys.argv[2] + " File Size")
 				if file_size >= 1125899906842624: print(file_size / 1125899906842624, "Petabytes")
