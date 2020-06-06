@@ -1,14 +1,10 @@
-#!/usr/bin/env python
-#coding: utf-8
-
 # Adapted from https://gist.github.com/risc987/184d49fa1a86e3c6c91c
 
 import os, socket, sys, threading, time
 
-#allow_delete = False
 allow_delete = True
 #local_ip = socket.gethostbyname(socket.gethostname())
-local_port = 2121
+local_port = 21
 currdir=os.path.abspath('.')
 
 class FTPserverThread(threading.Thread):
@@ -225,7 +221,7 @@ class FTPserverThread(threading.Thread):
 class FTPserver(threading.Thread):
 	def __init__(self):
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		self.sock.bind(('',local_port))
+		self.sock.bind(('localhost',local_port))
 		threading.Thread.__init__(self)
 
 	def run(self):
@@ -238,11 +234,16 @@ class FTPserver(threading.Thread):
 	def stop(self):
 		self.sock.close()
 
-if __name__=='__main__':
+def init_ftp_server(user='user', password='password', port=21):
+	# Initializes the FTP server that interfaces with InfiniDrive
+
+	# TODO: Set username and password for authentication
+	# Set port
+	local_port = port
+
+	# Start running the FTP server
 	ftp=FTPserver()
 	ftp.daemon=True
 	ftp.start()
-	try: input = raw_input
-	except NameError: pass
 	input('Enter to end...\n')
 	ftp.stop()
