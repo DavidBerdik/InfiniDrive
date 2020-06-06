@@ -3,19 +3,21 @@
 import os, socket, sys, threading, time
 
 allow_delete = True
-#local_ip = socket.gethostbyname(socket.gethostname())
 local_port = 21
 currdir=os.path.abspath('.')
 
 class FTPserverThread(threading.Thread):
-	def __init__(self,pair):
+	def __init__(self,pair,local_username,local_password):
 		conn, addr = pair
 		self.conn=conn
 		self.addr=addr  # client address
+		self.local_username=local_username
+		self.local_password=local_password
 		self.basewd=currdir
 		self.cwd=self.basewd
 		self.rest=False
 		self.pasv_mode=False
+		self.input_username=''
 		threading.Thread.__init__(self)
 
 	def run(self):
@@ -42,10 +44,16 @@ class FTPserverThread(threading.Thread):
 		else:
 			self.conn.send(b'451 Sorry.\r\n')
 	def USER(self,cmd):
-		self.conn.send(b'331 OK.\r\n')
+		self.input_username = cmd.split()[1]
+		self.conn.send(b'331 Password required for ' + self.input_username.encode() + b'\r\n')
 	def PASS(self,cmd):
-		self.conn.send(b'230 OK.\r\n')
-		#self.conn.send('530 Incorrect.\r\n')
+		print(self.local_username)
+		print(self.local_password)
+		print(cmd.split())
+		if self.local_username == self.input_username and self.local_password == cmd.split()[1]:
+			self.conn.send(b'230 OK.\r\n')
+		else:
+			self.conn.send(b'530 Login incorrect.\r\n')
 	def QUIT(self,cmd):
 		self.conn.send(b'221 Goodbye.\r\n')
 	def NOOP(self,cmd):
@@ -219,15 +227,17 @@ class FTPserverThread(threading.Thread):
 		self.conn.send(b'226 Transfer complete.\r\n')
 
 class FTPserver(threading.Thread):
-	def __init__(self):
+	def __init__(self, local_username, local_password):
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.sock.bind(('localhost',local_port))
+		self.local_username = local_username
+		self.local_password = local_password
 		threading.Thread.__init__(self)
 
 	def run(self):
 		self.sock.listen(5)
 		while True:
-			th=FTPserverThread(self.sock.accept())
+			th=FTPserverThread(self.sock.accept(), self.local_username, self.local_password)
 			th.daemon=True
 			th.start()
 
@@ -237,12 +247,11 @@ class FTPserver(threading.Thread):
 def init_ftp_server(user='user', password='password', port=21):
 	# Initializes the FTP server that interfaces with InfiniDrive
 
-	# TODO: Set username and password for authentication
 	# Set port
 	local_port = port
 
 	# Start running the FTP server
-	ftp=FTPserver()
+	ftp=FTPserver(user, password)
 	ftp.daemon=True
 	ftp.start()
 	input('Enter to end...\n')
