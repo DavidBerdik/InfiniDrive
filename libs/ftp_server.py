@@ -156,9 +156,13 @@ class FTPserverThread(threading.Thread):
 		self.conn.send(b'350 Ready.\r\n')
 
 	def RNTO(self,cmd):
-		fn=os.path.join(self.cwd,cmd[5:-2])
-		os.rename(self.rnfn,fn)
-		self.conn.send(b'250 File renamed.\r\n')
+		# Rename to command: renames an InfiniDrive file
+		filename = cmd[5:-2]
+		try:
+			driveAPI.rename_file(self.drive_service, self.rnfn, filename)
+			self.conn.send(b'250 File renamed.\r\n')
+		except:
+			self.conn.send(b'550 Rename failed.\r\n')
 
 	def REST(self,cmd):
 		self.pos=int(cmd[5:-2])
