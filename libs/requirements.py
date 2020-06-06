@@ -17,16 +17,12 @@ class requirements:
 			from hashlib import sha256
 			from io import BytesIO
 			from libs.bar import getpatchedprogress
-			from libs.ftp_server import init_ftp_server
 			from libs.help import print_help
 			from libs.uploadHandler import handle_update_fragment
 			from libs.uploadHandler import handle_upload_fragment
 			from PIL import Image
 			from progress.bar import ShadyBar
 			from progress.spinner import Spinner
-			from pyftpdlib.authorizers import DummyAuthorizer
-			from pyftpdlib.handlers import FTPHandler
-			from pyftpdlib.servers import FTPServer
 			from tabulate import tabulate
 		except (ModuleNotFoundError, ImportError) as error:
 			print('\nOops! ', end = ' ')
