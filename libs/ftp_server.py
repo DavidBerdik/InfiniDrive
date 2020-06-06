@@ -23,7 +23,7 @@ class FTPserverThread(threading.Thread):
 		threading.Thread.__init__(self)
 
 	def run(self):
-		self.conn.send(b'220 Welcome!\r\n')
+		self.conn.send(b'220 Welcome to the InfiniDrive FTP Interface!\r\n')
 		while True:
 			cmd_byte=self.conn.recv(32*1024)
 			if not cmd_byte: break
@@ -143,12 +143,8 @@ class FTPserverThread(threading.Thread):
 		self.conn.send(b'550 Permission denied.\r\n')
 
 	def RMD(self,cmd):
-		dn=os.path.join(self.cwd,cmd[4:-2])
-		if allow_delete:
-			os.rmdir(dn)
-			self.conn.send(b'250 Directory deleted.\r\n')
-		else:
-			self.conn.send(b'450 Not allowed.\r\n')
+		# Remove directory command: this command does not make sense in the context of InfiniDrive, so always deny permission.
+		self.conn.send(b'550 Permission denied.\r\n')
 
 	def DELE(self,cmd):
 		fn=os.path.join(self.cwd,cmd[5:-2])
