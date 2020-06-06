@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 #coding: utf-8
 
+# Adapted from https://gist.github.com/risc987/184d49fa1a86e3c6c91c
+
 import os, socket, sys, threading, time
 
 #allow_delete = False
