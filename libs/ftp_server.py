@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 #coding: utf-8
 
-import os,socket,threading,time
-#import traceback
-import sys
-#sys.setdefaultencoding('utf8')
+import os, socket, sys, threading, time
 
 #allow_delete = False
 allow_delete = True
@@ -247,6 +244,3 @@ if __name__=='__main__':
     except NameError: pass
     input('Enter to end...\n')
     ftp.stop()
-    
-    
-    
