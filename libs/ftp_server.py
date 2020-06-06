@@ -147,12 +147,13 @@ class FTPserverThread(threading.Thread):
 		self.conn.send(b'550 Permission denied.\r\n')
 
 	def DELE(self,cmd):
-		fn=os.path.join(self.cwd,cmd[5:-2])
-		if allow_delete:
-			os.remove(fn)
+		# Deletes an InfiniDrive file
+		filename = cmd[5:-2]
+		try:
+			driveAPI.delete_file(self.drive_service, filename)
 			self.conn.send(b'250 File deleted.\r\n')
-		else:
-			self.conn.send(b'450 Not allowed.\r\n')
+		except:
+			self.conn.send(b'450 Delete failed.\r\n')
 
 	def RNFR(self,cmd):
 		self.rnfn=os.path.join(self.cwd,cmd[5:-2])
