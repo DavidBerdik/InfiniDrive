@@ -143,9 +143,8 @@ class FTPserverThread(threading.Thread):
 		self.conn.send(b'226 Directory send OK.\r\n')
 
 	def MKD(self,cmd):
-		dn=os.path.join(self.cwd,cmd[4:-2])
-		os.mkdir(dn)
-		self.conn.send(b'257 Directory created.\r\n')
+		# Make directory command: we do not want the user to be able to make directories, so always deny permission.
+		self.conn.send(b'550 Permission denied.\r\n')
 
 	def RMD(self,cmd):
 		dn=os.path.join(self.cwd,cmd[4:-2])
