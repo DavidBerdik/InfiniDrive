@@ -165,9 +165,10 @@ class FTPserverThread(threading.Thread):
 			self.conn.send(b'550 Rename failed.\r\n')
 
 	def REST(self,cmd):
+		# Reset file transfer position
 		self.pos=int(cmd[5:-2])
 		self.rest=True
-		self.conn.send(b'250 File position reseted.\r\n')
+		self.conn.send(b'250 File position reset.\r\n')
 
 	def RETR(self,cmd):
 		fn=os.path.join(self.cwd,cmd[5:-2])
