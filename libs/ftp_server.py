@@ -39,16 +39,23 @@ class FTPserverThread(threading.Thread):
 					self.conn.send(b'500 Sorry.\r\n')
 
 	def SYST(self,cmd):
-		self.conn.send(b'215 UNIX Type: L8\r\n')
+		# Answer client request for information about server.
+		self.conn.send(b'215 InfiniDrive FTP Interface\r\n')
+
 	def OPTS(self,cmd):
+		# Answer that UTF8 is on. Otherwise just say sorry.
 		if cmd[5:-2].upper()=='UTF8 ON':
 			self.conn.send(b'200 OK.\r\n')
 		else:
 			self.conn.send(b'451 Sorry.\r\n')
+
 	def USER(self,cmd):
+		# Accept username input.
 		self.input_username = cmd.split()[1]
 		self.conn.send(b'331 Password required for ' + self.input_username.encode() + b'\r\n')
+
 	def PASS(self,cmd):
+		# Accept password input and authenticate it.
 		print(self.local_username)
 		print(self.local_password)
 		print(cmd.split())
@@ -56,48 +63,35 @@ class FTPserverThread(threading.Thread):
 			self.conn.send(b'230 OK.\r\n')
 		else:
 			self.conn.send(b'530 Login incorrect.\r\n')
+
 	def QUIT(self,cmd):
+		# FTP logout command.
 		self.conn.send(b'221 Goodbye.\r\n')
+
 	def NOOP(self,cmd):
+		# No-op command.
 		self.conn.send(b'200 OK.\r\n')
+
 	def TYPE(self,cmd):
+		# The server always transfers data in binary mode.
 		self.mode=cmd[5]	#TYPE I
 		self.conn.send(b'200 Binary mode.\r\n')
 
 	def CDUP(self,cmd):
-		#if not os.path.samefile(self.cwd,self.basewd):
-		if self.cwd == self.basewd :
-			pass
-		elif os.path.commonprefix([self.cwd,self.basewd]) == self.basewd :
-			#learn from stackoverflow
-			self.cwd=os.path.abspath(os.path.join(self.cwd,'..'))
-		else:
-			self.cwd = self.basewd
-		self.conn.send(b'200 OK.\r\n')
+		# The command to change to the parent directory does not make sense with InfiniDrive, so deny it.
+		self.conn.send(b'550 Permission denied.\r\n')
 		
 	def PWD(self,cmd):
-		cwd=os.path.relpath(self.cwd,self.basewd)
-		if cwd=='.':
-			cwd='/'
-		else:
-			cwd='/'+cwd
-		self.conn.send( ('257 \"%s\"\r\n' % cwd).encode('utf-8') )
+		# The InfiniDrive FTP interface emulates "/" as the working directory.
+		cwd='/'
+		self.conn.send(('257 \"%s\"\r\n' % cwd).encode('utf-8'))
+
 	def CWD(self,cmd):
-		chwd=cmd[4:-2]
-		orignal = self.cwd
-		if chwd=='/':
-			self.cwd=self.basewd
-		elif chwd[0]=='/':
-			self.cwd=os.path.join(self.basewd,chwd[1:])
-		else:
-			self.cwd=os.path.join(self.cwd,chwd)
-		if os.path.exists(self.cwd):
-			self.conn.send(b'250 OK.\r\n')
-		else:
-			self.cwd = orignal
-			self.conn.send(('550 %s: No such file or directory.\r\n'% chwd).encode('utf-8'))
+		# The command to change the working directory does not make sense with InfiniDrive, so deny it.
+		self.conn.send(b'550 Permission denied.\r\n')
 			
 	def PORT(self,cmd):
+		# Specifies an address and port to which the server should connect
 		if self.pasv_mode:
 			self.servsock.close()
 			self.pasv_mode = False
@@ -107,6 +101,7 @@ class FTPserverThread(threading.Thread):
 		self.conn.send(b'200 Get port.\r\n')
 
 	def PASV(self,cmd): # from http://goo.gl/3if2U
+		# Enter passive mode
 		self.pasv_mode = True
 		self.servsock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 		#self.servsock.bind((local_ip,0))
@@ -118,18 +113,19 @@ class FTPserverThread(threading.Thread):
 		self.conn.send( ('227 Entering Passive Mode (%s,%u,%u).\r\n' % (','.join(ip.split('.')), port>>8&0xFF, port&0xFF)).encode('UTF-8') )
 
 	def start_datasock(self):
+		# Start data socket
 		if self.pasv_mode:
 			self.datasock, addr = self.servsock.accept()
-			print ('connect:', addr)
+			print ('Connect:', addr)
 		else:
 			self.datasock=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 			self.datasock.connect((self.dataAddr,self.dataPort))
 
 	def stop_datasock(self):
+		# Stop data socket
 		self.datasock.close()
 		if self.pasv_mode:
 			self.servsock.close()
-
 
 	def LIST(self,cmd):
 		# Get the list of InfiniDrive files		
