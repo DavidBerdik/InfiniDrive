@@ -1,18 +1,20 @@
 # Adapted from https://gist.github.com/risc987/184d49fa1a86e3c6c91c
 
 import os, socket, sys, threading, time
+import libs.driveAPI as driveAPI
 
 allow_delete = True
 local_port = 21
 currdir=os.path.abspath('.')
 
 class FTPserverThread(threading.Thread):
-	def __init__(self,pair,local_username,local_password):
+	def __init__(self, pair, local_username, local_password, drive_service):
 		conn, addr = pair
 		self.conn=conn
 		self.addr=addr  # client address
 		self.local_username=local_username
 		self.local_password=local_password
+		self.drive_service=drive_service
 		self.basewd=currdir
 		self.cwd=self.basewd
 		self.rest=False
@@ -130,29 +132,16 @@ class FTPserverThread(threading.Thread):
 
 
 	def LIST(self,cmd):
+		# Get the list of InfiniDrive files		
 		self.conn.send(b'150 Here comes the directory listing.\r\n')
+		remote_files = [item for sublist in driveAPI.list_files(self.drive_service) for item in sublist]
 		print ('list:', self.cwd)
 		self.start_datasock()
-		for t in os.listdir(self.cwd):
-			print("t is: " ,t)
-			k=self.toListItem(os.path.join(self.cwd,t))
-			if (k and len(k) > 0):
-				self.datasock.send( (k+'\r\n').encode('UTF-8') )
+		for file in remote_files:
+			self.datasock.send(("-rwxrwxrwx   1 owner   group          0 Jan 01  0:00 " + file + "\r\n").encode())
 		self.stop_datasock()
 		self.conn.send(b'226 Directory send OK.\r\n')
 
-	def toListItem(self,fn):
-		try:
-			st=os.stat(fn)
-			fullmode='rwxrwxrwx'
-			mode=''
-			for i in range(9):
-				mode+=((st.st_mode>>(8-i))&1) and fullmode[i] or '-'
-			d=(os.path.isdir(fn)) and 'd' or '-'
-			ftime=time.strftime(' %b %d %H:%M ', time.gmtime(st.st_mtime))
-			return d+mode+' 1 user group '+str(st.st_size)+ftime+os.path.basename(fn)
-		except:
-			return '';
 	def MKD(self,cmd):
 		dn=os.path.join(self.cwd,cmd[4:-2])
 		os.mkdir(dn)
@@ -227,17 +216,18 @@ class FTPserverThread(threading.Thread):
 		self.conn.send(b'226 Transfer complete.\r\n')
 
 class FTPserver(threading.Thread):
-	def __init__(self, local_username, local_password):
+	def __init__(self, local_username, local_password, drive_service):
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.sock.bind(('localhost',local_port))
 		self.local_username = local_username
 		self.local_password = local_password
+		self.drive_service = drive_service
 		threading.Thread.__init__(self)
 
 	def run(self):
 		self.sock.listen(5)
 		while True:
-			th=FTPserverThread(self.sock.accept(), self.local_username, self.local_password)
+			th=FTPserverThread(self.sock.accept(), self.local_username, self.local_password, self.drive_service)
 			th.daemon=True
 			th.start()
 
@@ -251,7 +241,7 @@ def init_ftp_server(user='user', password='password', port=21):
 	local_port = port
 
 	# Start running the FTP server
-	ftp=FTPserver(user, password)
+	ftp=FTPserver(user, password, driveAPI.get_service())
 	ftp.daemon=True
 	ftp.start()
 	input('Enter to end...\n')
