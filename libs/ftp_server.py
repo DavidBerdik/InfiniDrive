@@ -4,7 +4,6 @@ import os, socket, sys, threading, time
 import libs.driveAPI as driveAPI
 
 allow_delete = True
-local_port = 21
 currdir=os.path.abspath('.')
 
 class FTPserverThread(threading.Thread):
@@ -35,7 +34,6 @@ class FTPserverThread(threading.Thread):
 					func(cmd)
 				except Exception as e:
 					print ('ERROR:',e)
-					#traceback.print_exc()
 					self.conn.send(b'500 Sorry.\r\n')
 
 	def SYST(self,cmd):
@@ -205,11 +203,11 @@ class FTPserverThread(threading.Thread):
 		self.conn.send(b'226 Transfer complete.\r\n')
 
 class FTPserver(threading.Thread):
-	def __init__(self, local_username, local_password, drive_service):
-		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		self.sock.bind(('localhost',local_port))
+	def __init__(self, local_username, local_password, port, drive_service):
 		self.local_username = local_username
 		self.local_password = local_password
+		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.sock.bind(('localhost', port))
 		self.drive_service = drive_service
 		threading.Thread.__init__(self)
 
@@ -225,12 +223,7 @@ class FTPserver(threading.Thread):
 
 def init_ftp_server(user='user', password='password', port=21):
 	# Initializes the FTP server that interfaces with InfiniDrive
-
-	# Set port
-	local_port = port
-
-	# Start running the FTP server
-	ftp=FTPserver(user, password, driveAPI.get_service())
+	ftp=FTPserver(user, password, port, driveAPI.get_service())
 	ftp.daemon=True
 	ftp.start()
 	input('Enter to end...\n')
