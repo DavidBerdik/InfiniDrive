@@ -56,9 +56,6 @@ class FTPserverThread(threading.Thread):
 
 	def PASS(self,cmd):
 		# Accept password input and authenticate it.
-		print(self.local_username)
-		print(self.local_password)
-		print(cmd.split())
 		if self.local_username == self.input_username and self.local_password == cmd.split()[1]:
 			self.conn.send(b'230 OK.\r\n')
 		else:
