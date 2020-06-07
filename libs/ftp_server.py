@@ -40,56 +40,56 @@ class FTPserverThread(threading.Thread):
 					print ('ERROR:',e)
 					self.conn.send(b'500 Sorry.\r\n')
 
-	def SYST(self,cmd):
+	def SYST(self, cmd):
 		# Answer client request for information about server.
 		self.conn.send(b'215 InfiniDrive FTP Interface\r\n')
 
-	def OPTS(self,cmd):
+	def OPTS(self, cmd):
 		# Answer that UTF8 is on. Otherwise just say sorry.
 		if cmd[5:-2].upper()=='UTF8 ON':
 			self.conn.send(b'200 OK.\r\n')
 		else:
 			self.conn.send(b'451 Sorry.\r\n')
 
-	def USER(self,cmd):
+	def USER(self, cmd):
 		# Accept username input.
 		self.input_username = cmd.split()[1]
 		self.conn.send(b'331 Password required for ' + self.input_username.encode() + b'\r\n')
 
-	def PASS(self,cmd):
+	def PASS(self, cmd):
 		# Accept password input and authenticate it.
 		if self.local_username == self.input_username and self.local_password == cmd.split()[1]:
 			self.conn.send(b'230 OK.\r\n')
 		else:
 			self.conn.send(b'530 Login incorrect.\r\n')
 
-	def QUIT(self,cmd):
+	def QUIT(self, cmd):
 		# FTP logout command.
 		self.conn.send(b'221 Goodbye.\r\n')
 
-	def NOOP(self,cmd):
+	def NOOP(self, cmd):
 		# No-op command.
 		self.conn.send(b'200 OK.\r\n')
 
-	def TYPE(self,cmd):
+	def TYPE(self, cmd):
 		# The server always transfers data in binary mode.
 		self.mode=cmd[5]	#TYPE I
 		self.conn.send(b'200 Binary mode.\r\n')
 
-	def CDUP(self,cmd):
+	def CDUP(self, cmd):
 		# The command to change to the parent directory does not make sense with InfiniDrive, so deny it.
 		self.conn.send(b'550 Permission denied.\r\n')
 		
-	def PWD(self,cmd):
+	def PWD(self, cmd):
 		# The InfiniDrive FTP interface emulates "/" as the working directory.
 		cwd='/'
 		self.conn.send(('257 \"%s\"\r\n' % cwd).encode('utf-8'))
 
-	def CWD(self,cmd):
+	def CWD(self, cmd):
 		# The command to change the working directory does not make sense with InfiniDrive, so deny it.
 		self.conn.send(b'550 Permission denied.\r\n')
 			
-	def PORT(self,cmd):
+	def PORT(self, cmd):
 		# Specifies an address and port to which the server should connect
 		if self.pasv_mode:
 			self.servsock.close()
@@ -99,7 +99,7 @@ class FTPserverThread(threading.Thread):
 		self.dataPort=(int(l[4])<<8)+int(l[5])
 		self.conn.send(b'200 Get port.\r\n')
 
-	def PASV(self,cmd): # from http://goo.gl/3if2U
+	def PASV(self, cmd): # from http://goo.gl/3if2U
 		# Enter passive mode
 		self.pasv_mode = True
 		self.servsock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -126,7 +126,7 @@ class FTPserverThread(threading.Thread):
 		if self.pasv_mode:
 			self.servsock.close()
 
-	def SIZE(self,cmd):
+	def SIZE(self, cmd):
 		# Gets the size of an InfiniDrive file
 		filename = cmd[5:-2].lstrip('/')
 		try:
@@ -135,7 +135,7 @@ class FTPserverThread(threading.Thread):
 		except:
 			self.conn.send(b'550 File not found.\r\n')
 
-	def LIST(self,cmd):
+	def LIST(self, cmd):
 		# Get the list of InfiniDrive files		
 		self.conn.send(b'150 Here comes the directory listing.\r\n')
 		remote_files = [item for sublist in driveAPI.list_files(self.drive_service) for item in sublist]
@@ -146,15 +146,15 @@ class FTPserverThread(threading.Thread):
 		self.stop_datasock()
 		self.conn.send(b'226 Directory send OK.\r\n')
 
-	def MKD(self,cmd):
+	def MKD(self, cmd):
 		# Make directory command: we do not want the user to be able to make directories, so always deny permission.
 		self.conn.send(b'550 Permission denied.\r\n')
 
-	def RMD(self,cmd):
+	def RMD(self, cmd):
 		# Remove directory command: this command does not make sense in the context of InfiniDrive, so always deny permission.
 		self.conn.send(b'550 Permission denied.\r\n')
 
-	def DELE(self,cmd):
+	def DELE(self, cmd):
 		# Deletes an InfiniDrive file
 		filename = cmd[5:-2]
 		try:
@@ -163,12 +163,12 @@ class FTPserverThread(threading.Thread):
 		except:
 			self.conn.send(b'450 Delete failed.\r\n')
 
-	def RNFR(self,cmd):
+	def RNFR(self, cmd):
 		# Rename from command: store the current name of the file the user wants to rename.
 		self.rnfn=cmd[5:-2]
 		self.conn.send(b'350 Ready.\r\n')
 
-	def RNTO(self,cmd):
+	def RNTO(self, cmd):
 		# Rename to command: renames an InfiniDrive file
 		filename = cmd[5:-2]
 		try:
@@ -177,13 +177,13 @@ class FTPserverThread(threading.Thread):
 		except:
 			self.conn.send(b'550 Rename failed.\r\n')
 
-	def REST(self,cmd):
+	def REST(self, cmd):
 		# Reset file transfer position
 		self.pos=int(cmd[5:-2])
 		self.rest=True
 		self.conn.send(b'250 File position reset.\r\n')
 
-	def RETR(self,cmd):
+	def RETR(self, cmd):
 		# Downloads an InfiniDrive file
 		# Extract the name of the file to download from the command
 		filename = cmd[5:-2].lstrip('/')
@@ -234,7 +234,7 @@ class FTPserverThread(threading.Thread):
 		self.stop_datasock()
 		self.conn.send(b'226 Transfer complete.\r\n')
 
-	def STOR(self,cmd):
+	def STOR(self, cmd):
 		fn=os.path.join(self.cwd,cmd[5:-2])
 		print ('Uplaoding:',fn)
 		if self.mode=='I':
