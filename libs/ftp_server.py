@@ -72,7 +72,6 @@ class FTPserverThread(threading.Thread):
 	def TYPE(self, cmd):
 		# The server always transfers data in binary mode.
 		if(cmd.split()[1] == 'I'):
-			self.mode = 'I'
 			self.conn.send(b'200 Binary mode.\r\n')
 		else:
 			self.conn.send(b'504 Command not supported for non-binary mode.\r\n')
@@ -238,10 +237,7 @@ class FTPserverThread(threading.Thread):
 	def STOR(self, cmd):
 		fn = os.path.join(self.cwd,cmd[5:-2])
 		print('Uploading:', fn)
-		if self.mode == 'I':
-			fo=open(fn, 'wb')
-		else:
-			fo=open(fn, 'wb')
+		fo=open(fn, 'wb')
 		self.conn.send(b'150 Opening data connection.\r\n')
 		self.start_datasock()
 		while True:
