@@ -6,8 +6,6 @@ from binascii import crc32
 from hashlib import sha256
 from PIL import Image
 
-currdir=os.path.abspath('.')
-
 class FTPserverThread(threading.Thread):
 	def __init__(self, pair, local_username, local_password, drive_service):
 		conn, addr = pair
@@ -16,8 +14,6 @@ class FTPserverThread(threading.Thread):
 		self.local_username = local_username
 		self.local_password = local_password
 		self.drive_service = drive_service
-		self.basewd = currdir
-		self.cwd = self.basewd
 		self.rest = False
 		self.pasv_mode = False
 		self.input_username = ''
@@ -215,7 +211,7 @@ class FTPserverThread(threading.Thread):
 			while True:
 				try:
 					pixelVals = list(Image.open(driveAPI.get_image_bytes_from_doc(self.drive_service, file)).convert('RGB').getdata())
-				except Exception as e:
+				except:
 					continue
 				pixelVals = [j for i in pixelVals for j in i]
 				if len(pixelVals) == 10224000:
