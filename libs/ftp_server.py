@@ -32,7 +32,7 @@ class FTPserverThread(threading.Thread):
 			if not cmd_byte: break
 			else:
 				cmd = cmd_byte.decode('UTF-8')
-				print ('Recieved:',cmd)
+				print('Received command:', cmd.strip())
 				try:
 					func=getattr(self,cmd[:4].strip().upper())
 					func(cmd)
@@ -41,7 +41,7 @@ class FTPserverThread(threading.Thread):
 						# The command issued by the client is not implemented, so return an error stating so.
 						self.conn.send(b'502 Command not implemented.\r\n')
 					else:
-						print ('ERROR:',e)
+						print('FTP SERVER ERROR:', e)
 						self.conn.send(b'500 Sorry.\r\n')
 
 	def SYST(self, cmd):
@@ -112,14 +112,14 @@ class FTPserverThread(threading.Thread):
 		self.servsock.bind((local_ip,0))		
 		self.servsock.listen(1)
 		ip, port = self.servsock.getsockname()
-		print ('open', ip, port)
+		print('Open:', ip, port)
 		self.conn.send( ('227 Entering Passive Mode (%s,%u,%u).\r\n' % (','.join(ip.split('.')), port>>8&0xFF, port&0xFF)).encode('UTF-8') )
 
 	def start_datasock(self):
 		# Start data socket
 		if self.pasv_mode:
 			self.datasock, addr = self.servsock.accept()
-			print ('Connect:', addr)
+			print('Connect:', addr)
 		else:
 			self.datasock=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 			self.datasock.connect((self.dataAddr,self.dataPort))
@@ -143,7 +143,6 @@ class FTPserverThread(threading.Thread):
 		# Get the list of InfiniDrive files		
 		self.conn.send(b'150 Here comes the directory listing.\r\n')
 		remote_files = [item for sublist in driveAPI.list_files(self.drive_service) for item in sublist]
-		print ('list:', self.cwd)
 		self.start_datasock()
 		for file in remote_files:
 			self.datasock.send(("-rwxrwxrwx   1 owner   group          0 Jan 01  0:00 " + file + "\r\n").encode('UTF-8'))
@@ -193,7 +192,7 @@ class FTPserverThread(threading.Thread):
 		filename = cmd[5:-2].lstrip('/')
 
 		# Open the data socket.
-		print ('Downloading:',filename)
+		print('Downloading', filename)
 		self.conn.send(b'150 Opening data connection.\r\n')
 		self.start_datasock()
 
@@ -240,7 +239,7 @@ class FTPserverThread(threading.Thread):
 
 	def STOR(self, cmd):
 		fn=os.path.join(self.cwd,cmd[5:-2])
-		print ('Uplaoding:',fn)
+		print('Uploading:', fn)
 		if self.mode=='I':
 			fo=open(fn,'wb')
 		else:
@@ -279,5 +278,6 @@ def init_ftp_server(user='user', password='password', port=21):
 	ftp=FTPserver(user, password, port, driveAPI.get_service())
 	ftp.daemon=True
 	ftp.start()
-	input('Enter to end...\n')
+	print('InfiniDrive FTP Interface Server Started!')
+	input('Press enter key to shut down server.\n')
 	ftp.stop()
