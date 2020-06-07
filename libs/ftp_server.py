@@ -1,40 +1,38 @@
+# Provides an FTP Server to allow interaction with InfiniDrive through an FTP client.
 # Adapted from https://gist.github.com/risc987/184d49fa1a86e3c6c91c
-
-import array, os, socket, sys, threading, time
-import libs.driveAPI as driveAPI
+import array, libs.driveAPI as driveAPI, os, socket, sys, threading, time
 
 from binascii import crc32
 from hashlib import sha256
 from PIL import Image
 
-allow_delete = True
 currdir=os.path.abspath('.')
 
 class FTPserverThread(threading.Thread):
 	def __init__(self, pair, local_username, local_password, drive_service):
 		conn, addr = pair
-		self.conn=conn
-		self.addr=addr  # client address
-		self.local_username=local_username
-		self.local_password=local_password
-		self.drive_service=drive_service
-		self.basewd=currdir
-		self.cwd=self.basewd
-		self.rest=False
-		self.pasv_mode=False
-		self.input_username=''
+		self.conn = conn
+		self.addr = addr # Client Address
+		self.local_username = local_username
+		self.local_password = local_password
+		self.drive_service = drive_service
+		self.basewd = currdir
+		self.cwd = self.basewd
+		self.rest = False
+		self.pasv_mode = False
+		self.input_username = ''
 		threading.Thread.__init__(self)
 
 	def run(self):
 		self.conn.send(b'220 Welcome to the InfiniDrive FTP Interface!\r\n')
 		while True:
-			cmd_byte=self.conn.recv(32*1024)
+			cmd_byte = self.conn.recv(32*1024)
 			if not cmd_byte: break
 			else:
 				cmd = cmd_byte.decode('UTF-8')
 				print('Received command:', cmd.strip())
 				try:
-					func=getattr(self,cmd[:4].strip().upper())
+					func = getattr(self,cmd[:4].strip().upper())
 					func(cmd)
 				except Exception as e:
 					if(str(e)[:41] == "'FTPserverThread' object has no attribute"):
@@ -50,7 +48,7 @@ class FTPserverThread(threading.Thread):
 
 	def OPTS(self, cmd):
 		# Answer that UTF8 is on. Otherwise just say sorry.
-		if cmd[5:-2].upper()=='UTF8 ON':
+		if cmd[5:-2].upper() == 'UTF8 ON':
 			self.conn.send(b'200 OK.\r\n')
 		else:
 			self.conn.send(b'451 Sorry.\r\n')
@@ -77,7 +75,7 @@ class FTPserverThread(threading.Thread):
 
 	def TYPE(self, cmd):
 		# The server always transfers data in binary mode.
-		self.mode='I'
+		self.mode = 'I'
 		self.conn.send(b'200 Binary mode.\r\n')
 
 	def CDUP(self, cmd):
@@ -103,8 +101,9 @@ class FTPserverThread(threading.Thread):
 		self.dataPort=(int(l[4])<<8)+int(l[5])
 		self.conn.send(b'200 Get port.\r\n')
 
-	def PASV(self, cmd): # from http://goo.gl/3if2U
+	def PASV(self, cmd):
 		# Enter passive mode
+		# Adapted from https://xiaoxia.org/2011/05/10/again-more-than-400-lines-of-python-code-to-achieve-a-ftp-server/
 		self.pasv_mode = True
 		self.servsock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 		#self.servsock.bind((local_ip,0))
@@ -113,7 +112,7 @@ class FTPserverThread(threading.Thread):
 		self.servsock.listen(1)
 		ip, port = self.servsock.getsockname()
 		print('Open:', ip, port)
-		self.conn.send( ('227 Entering Passive Mode (%s,%u,%u).\r\n' % (','.join(ip.split('.')), port>>8&0xFF, port&0xFF)).encode('UTF-8') )
+		self.conn.send(('227 Entering Passive Mode (%s,%u,%u).\r\n' % (','.join(ip.split('.')), port>>8&0xFF, port&0xFF)).encode('UTF-8'))
 
 	def start_datasock(self):
 		# Start data socket
@@ -168,7 +167,7 @@ class FTPserverThread(threading.Thread):
 
 	def RNFR(self, cmd):
 		# Rename from command: store the current name of the file the user wants to rename.
-		self.rnfn=cmd[5:-2]
+		self.rnfn = cmd[5:-2]
 		self.conn.send(b'350 Ready.\r\n')
 
 	def RNTO(self, cmd):
@@ -182,8 +181,8 @@ class FTPserverThread(threading.Thread):
 
 	def REST(self, cmd):
 		# Reset file transfer position
-		self.pos=int(cmd[5:-2])
-		self.rest=True
+		self.pos = int(cmd[5:-2])
+		self.rest = True
 		self.conn.send(b'250 File position reset.\r\n')
 
 	def RETR(self, cmd):
@@ -208,7 +207,7 @@ class FTPserverThread(threading.Thread):
 		# This is for managing the file position. I am not sure if we need this just yet, so I am keeping it for now.
 		if self.rest:
 			fi.seek(self.pos)
-			self.rest=False
+			self.rest = False
 
 		# For all fragments...
 		for file in reversed(files):
@@ -238,16 +237,16 @@ class FTPserverThread(threading.Thread):
 		self.conn.send(b'226 Transfer complete.\r\n')
 
 	def STOR(self, cmd):
-		fn=os.path.join(self.cwd,cmd[5:-2])
+		fn = os.path.join(self.cwd,cmd[5:-2])
 		print('Uploading:', fn)
-		if self.mode=='I':
-			fo=open(fn,'wb')
+		if self.mode == 'I':
+			fo=open(fn, 'wb')
 		else:
-			fo=open(fn,'wb')
+			fo=open(fn, 'wb')
 		self.conn.send(b'150 Opening data connection.\r\n')
 		self.start_datasock()
 		while True:
-			data=self.datasock.recv(1024)
+			data = self.datasock.recv(1024)
 			if not data: break
 			fo.write(data)
 		fo.close()
@@ -266,8 +265,8 @@ class FTPserver(threading.Thread):
 	def run(self):
 		self.sock.listen(5)
 		while True:
-			th=FTPserverThread(self.sock.accept(), self.local_username, self.local_password, self.drive_service)
-			th.daemon=True
+			th = FTPserverThread(self.sock.accept(), self.local_username, self.local_password, self.drive_service)
+			th.daemon = True
 			th.start()
 
 	def stop(self):
@@ -275,8 +274,8 @@ class FTPserver(threading.Thread):
 
 def init_ftp_server(user='user', password='password', port=21):
 	# Initializes the FTP server that interfaces with InfiniDrive
-	ftp=FTPserver(user, password, port, driveAPI.get_service())
-	ftp.daemon=True
+	ftp = FTPserver(user, password, port, driveAPI.get_service())
+	ftp.daemon = True
 	ftp.start()
 	print('InfiniDrive FTP Interface Server Started!')
 	input('Press enter key to shut down server.\n')
