@@ -71,8 +71,11 @@ class FTPserverThread(threading.Thread):
 
 	def TYPE(self, cmd):
 		# The server always transfers data in binary mode.
-		self.mode = 'I'
-		self.conn.send(b'200 Binary mode.\r\n')
+		if(cmd.split()[1] == 'I'):
+			self.mode = 'I'
+			self.conn.send(b'200 Binary mode.\r\n')
+		else:
+			self.conn.send(b'504 Command not supported for non-binary mode.\r\n')
 
 	def CDUP(self, cmd):
 		# The command to change to the parent directory does not make sense with InfiniDrive, so deny it.
