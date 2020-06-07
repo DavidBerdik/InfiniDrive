@@ -37,8 +37,12 @@ class FTPserverThread(threading.Thread):
 					func=getattr(self,cmd[:4].strip().upper())
 					func(cmd)
 				except Exception as e:
-					print ('ERROR:',e)
-					self.conn.send(b'500 Sorry.\r\n')
+					if(str(e)[:41] == "'FTPserverThread' object has no attribute"):
+						# The command issued by the client is not implemented, so return an error stating so.
+						self.conn.send(b'502 Command not implemented.\r\n')
+					else:
+						print ('ERROR:',e)
+						self.conn.send(b'500 Sorry.\r\n')
 
 	def SYST(self, cmd):
 		# Answer client request for information about server.
@@ -73,7 +77,7 @@ class FTPserverThread(threading.Thread):
 
 	def TYPE(self, cmd):
 		# The server always transfers data in binary mode.
-		self.mode=cmd[5]	#TYPE I
+		self.mode='I'
 		self.conn.send(b'200 Binary mode.\r\n')
 
 	def CDUP(self, cmd):
