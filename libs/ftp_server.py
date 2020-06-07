@@ -54,7 +54,7 @@ class FTPserverThread(threading.Thread):
 	def USER(self, cmd):
 		# Accept username input.
 		self.input_username = cmd.split()[1]
-		self.conn.send(b'331 Password required for ' + self.input_username.encode() + b'\r\n')
+		self.conn.send(b'331 Password required for ' + self.input_username.encode('UTF-8') + b'\r\n')
 
 	def PASS(self, cmd):
 		# Accept password input and authenticate it.
@@ -131,7 +131,7 @@ class FTPserverThread(threading.Thread):
 		filename = cmd[5:-2].lstrip('/')
 		try:
 			file_size = driveAPI.get_file_size(self.drive_service, filename)
-			self.conn.send(('213 ' + str(file_size) + '\r\n').encode())
+			self.conn.send(('213 ' + str(file_size) + '\r\n').encode('UTF-8'))
 		except:
 			self.conn.send(b'550 File not found.\r\n')
 
@@ -142,7 +142,7 @@ class FTPserverThread(threading.Thread):
 		print ('list:', self.cwd)
 		self.start_datasock()
 		for file in remote_files:
-			self.datasock.send(("-rwxrwxrwx   1 owner   group          0 Jan 01  0:00 " + file + "\r\n").encode())
+			self.datasock.send(("-rwxrwxrwx   1 owner   group          0 Jan 01  0:00 " + file + "\r\n").encode('UTF-8'))
 		self.stop_datasock()
 		self.conn.send(b'226 Directory send OK.\r\n')
 
