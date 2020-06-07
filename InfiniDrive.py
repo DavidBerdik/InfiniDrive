@@ -1,10 +1,7 @@
-from libs.requirements import requirements
-
-import array, gc, libs.driveAPI as driveAPI, math, os, requests, sys, time
+import array, gc, libs.driveAPI as driveAPI, math, os, requests, sys
 
 from binascii import crc32
 from hashlib import sha256
-from io import BytesIO
 from libs.bar import getpatchedprogress
 from libs.ftp_server import init_ftp_server
 from libs.help import print_help
