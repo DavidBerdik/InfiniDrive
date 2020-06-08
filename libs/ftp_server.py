@@ -26,7 +26,8 @@ class FTPserverThread(threading.Thread):
 		self.conn.send(b'220 Welcome to the InfiniDrive FTP Interface!\r\n')
 		while True:
 			cmd_byte = self.conn.recv(32*1024)
-			if not cmd_byte: break
+			if not cmd_byte:
+				break
 			else:
 				cmd = cmd_byte.decode('UTF-8')
 				print('Received command:', cmd.strip())
