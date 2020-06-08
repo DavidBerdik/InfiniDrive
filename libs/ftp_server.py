@@ -320,18 +320,17 @@ class FTPserverThread(threading.Thread):
 					driveAPI.delete_file(self.drive_service, file['id'])
 
 class FTPserver(threading.Thread):
-	def __init__(self, local_username, local_password, port, drive_service):
+	def __init__(self, local_username, local_password, port):
 		self.local_username = local_username
 		self.local_password = local_password
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.sock.bind(('localhost', port))
-		self.drive_service = drive_service
 		threading.Thread.__init__(self)
 
 	def run(self):
 		self.sock.listen(5)
 		while True:
-			th = FTPserverThread(self.sock.accept(), self.local_username, self.local_password, self.drive_service)
+			th = FTPserverThread(self.sock.accept(), self.local_username, self.local_password, driveAPI.get_service())
 			th.daemon = True
 			th.start()
 
@@ -340,7 +339,7 @@ class FTPserver(threading.Thread):
 
 def init_ftp_server(user='user', password='password', port=21):
 	# Initializes the FTP server that interfaces with InfiniDrive
-	ftp = FTPserver(user, password, port, driveAPI.get_service())
+	ftp = FTPserver(user, password, port)
 	ftp.daemon = True
 	ftp.start()
 	print('InfiniDrive FTP Interface Server Started!')
