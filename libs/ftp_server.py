@@ -1,6 +1,6 @@
 # Provides an FTP Server to allow interaction with InfiniDrive through an FTP client.
 # Adapted from https://gist.github.com/risc987/184d49fa1a86e3c6c91c
-import array, libs.driveAPI as driveAPI, os, socket, threading
+import array, libs.driveAPI as driveAPI, socket, threading
 
 from binascii import crc32
 from hashlib import sha256
