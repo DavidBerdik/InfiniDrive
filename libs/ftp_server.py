@@ -182,10 +182,10 @@ class FTPserverThread(threading.Thread):
 			self.conn.send(b'550 Rename failed.\r\n')
 
 	def REST(self, cmd):
-		# Reset file transfer position
+		# Set file transfer position
 		self.pos = int(cmd[5:-2])
 		self.rest = True
-		self.conn.send(b'250 File position reset.\r\n')
+		self.conn.send(b'250 File transfer position set.\r\n')
 
 	def RETR(self, cmd):
 		# Downloads an InfiniDrive file
@@ -206,10 +206,10 @@ class FTPserverThread(threading.Thread):
 		# Get a list of the fragments that make up the given InfiniDrive file.
 		files = driveAPI.get_files_list_from_folder(self.drive_service, driveAPI.get_file_id_from_name(self.drive_service, filename))
 
-		# This is for managing the file position. I am not sure if we need this just yet, so I am keeping it for now.
+		# If the client has requested a custom starting position, slice off irrelevant fragments and calculate the fragment byte offset.
 		if self.rest:
-			fi.seek(self.pos)
-			self.rest = False
+			files = files[:-(self.pos // 10224000)]
+			self.frag_byte_offset = self.pos % 10224000
 
 		# For all fragments...
 		for file in reversed(files):
@@ -230,8 +230,15 @@ class FTPserverThread(threading.Thread):
 				self.conn.send(b'551 File is corrupted.\r\n')
 				return
 
-			# Build the final byte array and send it to the client.
+			# Build the final byte array.
 			pixelVals = array.array('B', pixelVals).tobytes().rstrip(b'\x00')[:-1]
+
+			# If the client requested a custom starting position, slice off the start of the byte array using the calculated frag_byte_offset value.
+			if self.rest:
+				pixelVals = pixelVals[self.frag_byte_offset:]
+				self.rest = False
+
+			# Send the byte array to the client.
 			self.datasock.send(pixelVals)
 
 		# File transfer is complete. Close the data socket and report completion.
