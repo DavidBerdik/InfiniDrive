@@ -1,6 +1,6 @@
-from binascii import crc32
+import libs.hash_handler as hash_handler
+
 from docx import Document
-from hashlib import sha256
 from io import BytesIO
 from PIL import Image
 
@@ -12,8 +12,7 @@ def handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, fai
 	fileBytes += bytes(10224000 - len(fileBytes))
 	
 	# Calculate CRC32 and SHA256 hashes for fileBytes
-	hash_crc32 = hex(crc32(fileBytes))
-	hash_sha256 = sha256(fileBytes).hexdigest()
+	hash_crc32, hash_sha256 = hash_handler.calc_hashes(fileBytes)
 
 	# Generate a new Word document
 	mem_doc = generate_word_doc(fileBytes)
@@ -34,16 +33,21 @@ def handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, fai
 		break
 
 # Handles updating of a fragment of data to Google Drive.
-def handle_update_fragment(driveAPI, fileBytes, currentHashCrc32, currentHashSha256, driveConnect, fragId, docNum, debug_log):
+def handle_update_fragment(driveAPI, fragment, fileBytes, driveConnect, docNum, debug_log):
 	# Add a "spacer byte" at the end to indciate end of data and start of padding and pad the fragment with
 	# enough null bytes to reach the requirements for the image dimensions.
 	fileBytes += bytes([255])
 	fileBytes += bytes(10224000 - len(fileBytes))
-	
+
+	# Get the fragment ID.
+	fragId = fragment['id']
+
+	# Get the CRC32 and SHA256 hashes for the current state of the fragment.
+	currentHashCrc32, currentHashSha256 = hash_handler.get_frag_hashes(fragment)
+
 	# Calculate CRC32 and SHA256 hashes for fileBytes
-	hash_crc32 = hex(crc32(fileBytes))
-	hash_sha256 = sha256(fileBytes).hexdigest()
-	
+	hash_crc32, hash_sha256 = hash_handler.calc_hashes(fileBytes)
+
 	# Check if the hashes for the fragment in its current state is the same as the new fragment's hash. If they are not
 	# the same, then update the fragment. If they are the same, then there is nothing to do.
 	if hash_crc32 != currentHashCrc32 or hash_sha256 != currentHashSha256:

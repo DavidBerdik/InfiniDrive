@@ -1,7 +1,5 @@
-import array, gc, libs.driveAPI as driveAPI, math, os, requests, sys
+import array, gc, libs.driveAPI as driveAPI, libs.hash_handler as hash_handler, math, os, requests, sys
 
-from binascii import crc32
-from hashlib import sha256
 from libs.bar import getpatchedprogress
 from libs.ftp_server import init_ftp_server
 from libs.help import print_help
@@ -115,14 +113,14 @@ class InfiniDrive:
 				if len(pixelVals) == 10224000:
 					break
 
-			# Compare the hashes stored with document to the hashes of pixelVals. If they do not match, terminate download and report corruption.
-			if('properties' in file and (file['properties']['crc32'] != hex(crc32(bytearray(pixelVals))) or
-			  ('sha256' in file['properties'] and file['properties']['sha256'] != sha256(bytearray(pixelVals)).hexdigest()))):
+			# If the downloaded values do not match the fragment hash, terminate download and report corruption.
+			if hash_handler.is_download_invalid(file, bytearray(pixelVals)):
 				downBar.finish()
 				print("\nError: InfiniDrive has detected that the file upload on Google Drive is corrupted and the download cannot complete.", end="")
 				showDownloadComplete = False
 				break
 
+			# Strip the null byte padding and "spacer byte" from pixelVals.
 			pixelVals = array.array('B', pixelVals).tobytes().rstrip(b'\x00')[:-1]
 
 			# Write the data stored in "pixelVals" to the output file.
@@ -206,15 +204,7 @@ class InfiniDrive:
 
 				if docNum <= len(orig_fragments):
 					# A remote fragment is present, so update it.
-					# First, extract the hash value if present.
-					currentHashCrc32 = ''
-					currentHashSha256 = ''
-					if 'properties' in orig_fragments[docNum-1]:
-						currentHashCrc32 = orig_fragments[docNum-1]['properties']['crc32']
-						if 'sha256' in orig_fragments[docNum-1]['properties']:
-							currentHashSha256 = orig_fragments[docNum-1]['properties']['sha256']
-					# Process update.
-					handle_update_fragment(driveAPI, fileBytes, currentHashCrc32, currentHashSha256, driveConnect, orig_fragments[docNum-1]['id'], docNum, self.debug_log)
+					handle_update_fragment(driveAPI, orig_fragments[docNum-1], fileBytes, driveConnect, docNum, self.debug_log)
 				else:
 					# Process the fragment and upload it to Google Drive.
 					handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, failedFragmentsSet, self.debug_log)
@@ -242,15 +232,7 @@ class InfiniDrive:
 
 				if docNum <= len(orig_fragments):
 					# A remote fragment is present, so update it.
-					# First, extract the hash value if present.
-					currentHashCrc32 = ''
-					currentHashSha256 = ''
-					if 'properties' in orig_fragments[docNum-1]:
-						currentHashCrc32 = orig_fragments[docNum-1]['properties']['crc32']
-						if 'sha256' in orig_fragments[docNum-1]['properties']:
-							currentHashSha256 = orig_fragments[docNum-1]['properties']['sha256']
-					# Process update.
-					handle_update_fragment(driveAPI, fileBytes, currentHashCrc32, currentHashSha256, driveConnect, orig_fragments[docNum-1]['id'], docNum, self.debug_log)
+					handle_update_fragment(driveAPI, orig_fragments[docNum-1], fileBytes, driveConnect, docNum, self.debug_log)
 				else:
 					# Process the fragment and upload it to Google Drive.
 					handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, failedFragmentsSet, self.debug_log)
@@ -287,8 +269,11 @@ class InfiniDrive:
 				if checkDataValidity:
 					# If we should check data validity, retrieve the file data and compare the hashes.
 					fileData = bytearray([j for i in list(Image.open(driveAPI.get_image_bytes_from_doc(driveAPI.get_service(), file)).convert('RGB').getdata()) for j in i])
+					
+					# Get fragment hashes.
+					crc32, sha256 = hash_handler.get_frag_hashes(file)
 
-					if(file['properties']['crc32'] == hex(crc32(fileData)) and file['properties']['sha256'] == sha256(fileBytes).hexdigest()):
+					if(crc32 == hash_handler.calc_crc32(fileData) and sha256 == hash_handler.calc_sha256(fileData)):
 						# If the hashes are identical, mark for no further validity checks and do not delete the file.
 						checkDataValidity = False
 						self.debug_log.write("		Validity check disabled\n")
