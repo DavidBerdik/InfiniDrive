@@ -1,6 +1,6 @@
 # Provides an FTP Server to allow interaction with InfiniDrive through an FTP client.
 # Adapted from https://gist.github.com/risc987/184d49fa1a86e3c6c91c
-import array, libs.driveAPI as driveAPI, socket, threading
+import array, libs.drive_api as drive_api, socket, threading
 
 from binascii import crc32
 from hashlib import sha256
@@ -135,7 +135,7 @@ class FTPserverThread(threading.Thread):
 		# Gets the size of an InfiniDrive file
 		filename = cmd[5:-2].lstrip('/')
 		try:
-			file_size = driveAPI.get_file_size(self.drive_service, filename)
+			file_size = drive_api.get_file_size(self.drive_service, filename)
 			self.conn.send(('213 ' + str(file_size) + '\r\n').encode('UTF-8'))
 		except:
 			self.conn.send(b'550 File not found.\r\n')
@@ -143,7 +143,7 @@ class FTPserverThread(threading.Thread):
 	def LIST(self, cmd):
 		# Get the list of InfiniDrive files		
 		self.conn.send(b'150 Here comes the directory listing.\r\n')
-		remote_files = [item for sublist in driveAPI.list_files(self.drive_service) for item in sublist]
+		remote_files = [item for sublist in drive_api.list_files(self.drive_service) for item in sublist]
 		self.start_datasock()
 		for file in remote_files:
 			self.datasock.send(("-rwxrwxrwx   1 owner   group          0 Jan 01  0:00 " + file + "\r\n").encode('UTF-8'))
@@ -162,7 +162,7 @@ class FTPserverThread(threading.Thread):
 		# Deletes an InfiniDrive file
 		filename = cmd[5:-2]
 		try:
-			driveAPI.delete_file(self.drive_service, filename)
+			drive_api.delete_file(self.drive_service, filename)
 			self.conn.send(b'250 File deleted.\r\n')
 		except:
 			self.conn.send(b'450 Delete failed.\r\n')
@@ -176,7 +176,7 @@ class FTPserverThread(threading.Thread):
 		# Rename to command: renames an InfiniDrive file
 		filename = cmd[5:-2]
 		try:
-			driveAPI.rename_file(self.drive_service, self.rnfn, filename)
+			drive_api.rename_file(self.drive_service, self.rnfn, filename)
 			self.conn.send(b'250 File renamed.\r\n')
 		except:
 			self.conn.send(b'550 Rename failed.\r\n')
@@ -197,14 +197,14 @@ class FTPserverThread(threading.Thread):
 		self.conn.send(b'150 Opening data connection.\r\n')
 		self.start_datasock()
 
-		if not driveAPI.file_with_name_exists(self.drive_service, filename):
+		if not drive_api.file_with_name_exists(self.drive_service, filename):
 			# Check if the file exists. If it does not, close the socket and send an error.
 			self.stop_datasock()
 			self.conn.send(b'551 File does not exist.\r\n')
 			return
 
 		# Get a list of the fragments that make up the given InfiniDrive file.
-		files = driveAPI.get_files_list_from_folder(self.drive_service, driveAPI.get_file_id_from_name(self.drive_service, filename))
+		files = drive_api.get_files_list_from_folder(self.drive_service, drive_api.get_file_id_from_name(self.drive_service, filename))
 
 		# If the client has requested a custom starting position, slice off irrelevant fragments and calculate the fragment byte offset.
 		if self.rest:
@@ -216,7 +216,7 @@ class FTPserverThread(threading.Thread):
 			# Get the RGB pixel values from the image as a list of tuples that we will break up and then convert to a bytestring.
 			while True:
 				try:
-					pixelVals = list(Image.open(driveAPI.get_image_bytes_from_doc(self.drive_service, file)).convert('RGB').getdata())
+					pixelVals = list(Image.open(drive_api.get_image_bytes_from_doc(self.drive_service, file)).convert('RGB').getdata())
 				except:
 					continue
 				pixelVals = [j for i in pixelVals for j in i]
@@ -256,14 +256,14 @@ class FTPserverThread(threading.Thread):
 		self.start_datasock()
 
 		# If a file with the given name does not already exist, create a new InfiniDrive file for the fragments.
-		if not driveAPI.file_with_name_exists(self.drive_service, filename):
-			driveAPI.begin_storage(filename)
+		if not drive_api.file_with_name_exists(self.drive_service, filename):
+			drive_api.begin_storage(filename)
 
 		# Get the ID of the InfiniDrive file (the folder that will store the fragments.
-		dirId = driveAPI.get_file_id_from_name(self.drive_service, filename)
+		dirId = drive_api.get_file_id_from_name(self.drive_service, filename)
 
 		# Get a list of the fragments that currently make up the file. If this is a new upload, it should come back empty.
-		orig_fragments = driveAPI.get_files_list_from_folder(self.drive_service, dirId)
+		orig_fragments = drive_api.get_files_list_from_folder(self.drive_service, dirId)
 		orig_fragments.reverse()
 
 		# Store the fragment number.
@@ -290,10 +290,10 @@ class FTPserverThread(threading.Thread):
 					if 'sha256' in orig_fragments[docNum-1]['properties']:
 						currentHashSha256 = orig_fragments[docNum-1]['properties']['sha256']
 				# Process update.
-				handle_update_fragment(driveAPI, fileBytes, currentHashCrc32, currentHashSha256, self.drive_service, orig_fragments[docNum-1]['id'], docNum, BytesIO())
+				handle_update_fragment(drive_api, fileBytes, currentHashCrc32, currentHashSha256, self.drive_service, orig_fragments[docNum-1]['id'], docNum, BytesIO())
 			else:
 				# Process the fragment and upload it to Google Drive.
-				handle_upload_fragment(driveAPI, fileBytes, self.drive_service, dirId, docNum, failedFragmentsSet, BytesIO())
+				handle_upload_fragment(drive_api, fileBytes, self.drive_service, dirId, docNum, failedFragmentsSet, BytesIO())
 
 			# Increment docNum for next Word document.
 			docNum = docNum + 1
@@ -305,7 +305,7 @@ class FTPserverThread(threading.Thread):
 		# For each document number in failedFragmentsSet, check for duplicates and remove any if they are present.
 		for name in failedFragmentsSet:
 			# Get duplicates.
-			duplicates = driveAPI.get_files_with_name_from_folder(self.drive_service, dirId, name)
+			duplicates = drive_api.get_files_with_name_from_folder(self.drive_service, dirId, name)
 
 			# For tracking if we should check data validity
 			checkDataValidity = True
@@ -314,17 +314,17 @@ class FTPserverThread(threading.Thread):
 			for file in duplicates:
 				if checkDataValidity:
 					# If we should check data validity, retrieve the file data and compare the hashes.
-					fileData = bytearray([j for i in list(Image.open(driveAPI.get_image_bytes_from_doc(self.drive_service, file)).convert('RGB').getdata()) for j in i])
+					fileData = bytearray([j for i in list(Image.open(drive_api.get_image_bytes_from_doc(self.drive_service, file)).convert('RGB').getdata()) for j in i])
 
 					if(file['properties']['crc32'] == hex(crc32(fileData)) and file['properties']['sha256'] == sha256(fileBytes).hexdigest()):
 						# If the hashes are identical, mark for no further validity checks and do not delete the file.
 						checkDataValidity = False
 					else:
 						# If the hashes do not match, delete the fragment.
-						driveAPI.delete_file(self.drive_service, file['id'])
+						drive_api.delete_file(self.drive_service, file['id'])
 				else:
 					# If we should not check data validity, delete the file.
-					driveAPI.delete_file(self.drive_service, file['id'])
+					drive_api.delete_file(self.drive_service, file['id'])
 
 class FTPserver(threading.Thread):
 	def __init__(self, local_username, local_password, port):
@@ -337,7 +337,7 @@ class FTPserver(threading.Thread):
 	def run(self):
 		self.sock.listen(5)
 		while True:
-			th = FTPserverThread(self.sock.accept(), self.local_username, self.local_password, driveAPI.get_service())
+			th = FTPserverThread(self.sock.accept(), self.local_username, self.local_password, drive_api.get_service())
 			th.daemon = True
 			th.start()
 

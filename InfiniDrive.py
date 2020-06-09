@@ -1,4 +1,4 @@
-import array, gc, libs.driveAPI as driveAPI, libs.hash_handler as hash_handler, math, os, requests, sys
+import array, gc, libs.drive_api as drive_api, libs.hash_handler as hash_handler, math, os, requests, sys
 
 from libs.bar import getpatchedprogress
 from libs.ftp_server import init_ftp_server
@@ -41,7 +41,7 @@ class InfiniDrive:
 			file_name = str(sys.argv[3])
 
 		skip_new_dir_generation = False
-		while driveAPI.file_with_name_exists(driveAPI.get_service(), file_name):
+		while drive_api.file_with_name_exists(drive_api.get_service(), file_name):
 			ans = input('A file with the name "' + str(file_name) + '" already exists. Would you like to overwrite it? (y/n) - ').lower()
 			if ans == 'y':
 				skip_new_dir_generation = True
@@ -51,13 +51,13 @@ class InfiniDrive:
 
 		# Create Google Drive folder
 		if not skip_new_dir_generation:
-			driveConnect, dirId = driveAPI.begin_storage(file_name)
+			driveConnect, dirId = drive_api.begin_storage(file_name)
 
 		# Hand off the upload process to the update function.
 		self.update(file_name, str(sys.argv[2]))
 
 	def print_file_list(self):
-		filesList = driveAPI.list_files(driveAPI.get_service())
+		filesList = drive_api.list_files(drive_api.get_service())
 		if(len(filesList) == 0):
 			print('No InfiniDrive uploads found')
 		else:
@@ -65,7 +65,7 @@ class InfiniDrive:
 
 	def rename(self):
 		try:
-			driveAPI.rename_file(driveAPI.get_service(), str(sys.argv[2]), str(sys.argv[3]))
+			drive_api.rename_file(drive_api.get_service(), str(sys.argv[2]), str(sys.argv[3]))
 			print('File rename complete.')
 		except Exception as e:
 			self.debug_log.write("----------------------------------------\n")
@@ -79,12 +79,12 @@ class InfiniDrive:
 
 	def download(self):
 		# Check if the file exists. If it does not, print an error message and return.
-		if not driveAPI.file_with_name_exists(driveAPI.get_service(), sys.argv[2]):
+		if not drive_api.file_with_name_exists(drive_api.get_service(), sys.argv[2]):
 			print('File with name "' + str(sys.argv[2]) + '" does not exist.')
 			return
 		
 		# Get a list of the files in the given folder.
-		files = driveAPI.get_files_list_from_folder(driveAPI.get_service(), driveAPI.get_file_id_from_name(driveAPI.get_service(), sys.argv[2]))
+		files = drive_api.get_files_list_from_folder(drive_api.get_service(), drive_api.get_file_id_from_name(drive_api.get_service(), sys.argv[2]))
 
 		# Open a file at the user-specified path to write the data to
 		result = open(str(sys.argv[3]), "wb")
@@ -102,7 +102,7 @@ class InfiniDrive:
 			# Get the RGB pixel values from the image as a list of tuples that we will break up and then convert to a bytestring.
 			while True:
 				try:
-					pixelVals = list(Image.open(driveAPI.get_image_bytes_from_doc(driveAPI.get_service(), file)).convert('RGB').getdata())
+					pixelVals = list(Image.open(drive_api.get_image_bytes_from_doc(drive_api.get_service(), file)).convert('RGB').getdata())
 				except Exception as e:
 					self.debug_log.write("----------------------------------------\n")
 					self.debug_log.write("Fragment download failure\n")
@@ -142,18 +142,18 @@ class InfiniDrive:
 			file_path = sys.argv[3]
 			
 		# Get Drive service.
-		driveConnect = driveAPI.get_service()
+		driveConnect = drive_api.get_service()
 		
 		# Check if a remote file with the given name exists. If one does not, print an error message and return.
-		if not driveAPI.file_with_name_exists(driveConnect, file_name):
+		if not drive_api.file_with_name_exists(driveConnect, file_name):
 			print('Remote file with name ' + file_name + ' does not exist.')
 			return
 		
 		# Get directory ID.
-		dirId = driveAPI.get_file_id_from_name(driveConnect, file_name)
+		dirId = drive_api.get_file_id_from_name(driveConnect, file_name)
 		
 		# Get a list of the fragments that currently make up the file. If this is a new upload, it should come back empty.
-		orig_fragments = driveAPI.get_files_list_from_folder(driveConnect, dirId)
+		orig_fragments = drive_api.get_files_list_from_folder(driveConnect, dirId)
 		orig_fragments.reverse()
 		
 		# Determine if upload is taking place from an HTTP or HTTPS URL.
@@ -204,10 +204,10 @@ class InfiniDrive:
 
 				if docNum <= len(orig_fragments):
 					# A remote fragment is present, so update it.
-					handle_update_fragment(driveAPI, orig_fragments[docNum-1], fileBytes, driveConnect, docNum, self.debug_log)
+					handle_update_fragment(drive_api, orig_fragments[docNum-1], fileBytes, driveConnect, docNum, self.debug_log)
 				else:
 					# Process the fragment and upload it to Google Drive.
-					handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, failedFragmentsSet, self.debug_log)
+					handle_upload_fragment(drive_api, fileBytes, driveConnect, dirId, docNum, failedFragmentsSet, self.debug_log)
 
 				# Increment docNum for next Word document.
 				docNum = docNum + 1
@@ -232,10 +232,10 @@ class InfiniDrive:
 
 				if docNum <= len(orig_fragments):
 					# A remote fragment is present, so update it.
-					handle_update_fragment(driveAPI, orig_fragments[docNum-1], fileBytes, driveConnect, docNum, self.debug_log)
+					handle_update_fragment(drive_api, orig_fragments[docNum-1], fileBytes, driveConnect, docNum, self.debug_log)
 				else:
 					# Process the fragment and upload it to Google Drive.
-					handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, failedFragmentsSet, self.debug_log)
+					handle_upload_fragment(drive_api, fileBytes, driveConnect, dirId, docNum, failedFragmentsSet, self.debug_log)
 
 				# Increment docNum for next Word document and read next chunk of data.
 				docNum = docNum + 1
@@ -250,7 +250,7 @@ class InfiniDrive:
 		docNum = docNum - 1
 		while docNum < len(orig_fragments):
 			upBar.next()
-			driveAPI.delete_file_by_id(driveAPI.get_service(), orig_fragments[docNum]['id'])
+			drive_api.delete_file_by_id(drive_api.get_service(), orig_fragments[docNum]['id'])
 			docNum = docNum + 1
 
 		# For each document number in failedFragmentsSet, check for duplicates and remove any if they are present.
@@ -258,7 +258,7 @@ class InfiniDrive:
 		self.debug_log.write("Processing detected corruption...\n")
 		for name in failedFragmentsSet:
 			# Get duplicates.
-			duplicates = driveAPI.get_files_with_name_from_folder(driveAPI.get_service(), dirId, name)
+			duplicates = drive_api.get_files_with_name_from_folder(drive_api.get_service(), dirId, name)
 			self.debug_log.write("	Processing corruption of fragments with name " + str(name) + "\n")
 
 			# For tracking if we should check data validity
@@ -268,7 +268,7 @@ class InfiniDrive:
 			for file in duplicates:
 				if checkDataValidity:
 					# If we should check data validity, retrieve the file data and compare the hashes.
-					fileData = bytearray([j for i in list(Image.open(driveAPI.get_image_bytes_from_doc(driveAPI.get_service(), file)).convert('RGB').getdata()) for j in i])
+					fileData = bytearray([j for i in list(Image.open(drive_api.get_image_bytes_from_doc(drive_api.get_service(), file)).convert('RGB').getdata()) for j in i])
 					
 					# Get fragment hashes.
 					crc32, sha256 = hash_handler.get_frag_hashes(file)
@@ -279,11 +279,11 @@ class InfiniDrive:
 						self.debug_log.write("		Validity check disabled\n")
 					else:
 						# If the hashes do not match, delete the fragment.
-						driveAPI.delete_file(driveAPI.get_service(), file['id'])
+						drive_api.delete_file(drive_api.get_service(), file['id'])
 						self.debug_log.write("		Removed corrupt duplicate with ID " + file['id'] + " | checkDataValidity = True\n")
 				else:
 					# If we should not check data validity, delete the file.
-					driveAPI.delete_file(driveAPI.get_service(), file['id'])
+					drive_api.delete_file(drive_api.get_service(), file['id'])
 					self.debug_log.write("		Removed corrupt duplicate with ID " + file['id'] + " | checkDataValidity = False\n")
 
 		self.debug_log.write("Processing of detected corruption completed.\n")
@@ -293,7 +293,7 @@ class InfiniDrive:
 		# If the number of fragments to expect from a file upload is known, verify that the upload is not corrupted.
 		if totalFrags != 'an unknown number of':
 			print('Verifying upload.')
-			foundFrags = len(driveAPI.get_files_list_from_folder(driveAPI.get_service(), dirId))
+			foundFrags = len(drive_api.get_files_list_from_folder(drive_api.get_service(), dirId))
 			if(totalFrags != foundFrags):
 				self.debug_log.write("----------------------------------------\n")
 				self.debug_log.write("InfiniDrive detected upload corruption.\n")
@@ -311,7 +311,7 @@ class InfiniDrive:
 		while True:
 			try:
 				# Get the size of the given file
-				file_size = driveAPI.get_file_size(driveAPI.get_service(), sys.argv[2])
+				file_size = drive_api.get_file_size(drive_api.get_service(), sys.argv[2])
 
 				# Print the appropriate sizes.
 				print(sys.argv[2] + " File Size")
@@ -351,7 +351,7 @@ class InfiniDrive:
 				print('Deleting file.')
 			while True:
 				try:
-					driveAPI.delete_file(driveAPI.get_service(), file_name)
+					drive_api.delete_file(drive_api.get_service(), file_name)
 				except Exception as e:
 					if(str(e)[:14] == "<HttpError 404"):
 						if not silent_delete:

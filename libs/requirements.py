@@ -6,7 +6,7 @@ class requirements:
 
 	def check_imports(self):
 		try:
-			import array, gc, libs.driveAPI as driveAPI, math, os, os.path, pickle, requests, sys, time, zipfile
+			import array, gc, libs.drive_api as drive_api, math, os, os.path, pickle, requests, sys, time, zipfile
 			from apiclient.http import MediaIoBaseDownload
 			from apiclient.http import MediaIoBaseUpload
 			from binascii import crc32
@@ -44,8 +44,8 @@ class requirements:
 		elif not os.path.exists('token.pickle'):
 			print('Please complete account authentication using the following URL.')
 			print('You can then run your previous command again.\n')
-			import libs.driveAPI as driveAPI
-			driveAPI.get_service()
+			import libs.drive_api as drive_api
+			drive_api.get_service()
 			return False
 		return True
 

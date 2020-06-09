@@ -5,7 +5,7 @@ from io import BytesIO
 from PIL import Image
 
 # Handles uploading of a fragment of data to Google Drive.
-def handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, failedFragmentsSet, debug_log):
+def handle_upload_fragment(drive_api, fileBytes, driveConnect, dirId, docNum, failedFragmentsSet, debug_log):
 	# Add a "spacer byte" at the end to indciate end of data and start of padding and pad the fragment with
 	# enough null bytes to reach the requirements for the image dimensions.
 	fileBytes += bytes([255])
@@ -20,7 +20,7 @@ def handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, fai
 	# Upload Word document to Google Drive
 	while True:
 		try:
-			driveAPI.store_doc(driveConnect, dirId, str(docNum) + ".docx", hash_crc32, hash_sha256, mem_doc)
+			drive_api.store_doc(driveConnect, dirId, str(docNum) + ".docx", hash_crc32, hash_sha256, mem_doc)
 		except Exception as e:
 			# If a fragment upload failure occurs, log the incident, add docNum to failedFragmentsSet,
 			# and try again.
@@ -33,7 +33,7 @@ def handle_upload_fragment(driveAPI, fileBytes, driveConnect, dirId, docNum, fai
 		break
 
 # Handles updating of a fragment of data to Google Drive.
-def handle_update_fragment(driveAPI, fragment, fileBytes, driveConnect, docNum, debug_log):
+def handle_update_fragment(drive_api, fragment, fileBytes, driveConnect, docNum, debug_log):
 	# Add a "spacer byte" at the end to indciate end of data and start of padding and pad the fragment with
 	# enough null bytes to reach the requirements for the image dimensions.
 	fileBytes += bytes([255])
@@ -57,7 +57,7 @@ def handle_update_fragment(driveAPI, fragment, fileBytes, driveConnect, docNum, 
 		# Upload replacement Word document to Google Drive
 		while True:
 			try:
-				driveAPI.update_fragment(driveConnect, fragId, hash_crc32, hash_sha256, mem_doc)
+				drive_api.update_fragment(driveConnect, fragId, hash_crc32, hash_sha256, mem_doc)
 			except Exception as e:
 				# If a fragment upload failure occurs, log the incident and try again.
 				debug_log.write("----------------------------------------\n")
