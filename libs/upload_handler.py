@@ -7,7 +7,7 @@ from PIL import Image
 # Handles uploading of a fragment of data to Google Drive.
 def handle_upload_fragment(drive_api, fileBytes, driveConnect, dirId, docNum, failedFragmentsSet, debug_log):
 	# Pad fileBytes.
-	pad_file_bytes(fileBytes)
+	fileBytes = pad_file_bytes(fileBytes)
 	
 	# Calculate CRC32 and SHA256 hashes for fileBytes
 	hash_crc32, hash_sha256 = hash_handler.calc_hashes(fileBytes)
@@ -33,7 +33,7 @@ def handle_upload_fragment(drive_api, fileBytes, driveConnect, dirId, docNum, fa
 # Handles updating of a fragment of data to Google Drive.
 def handle_update_fragment(drive_api, fragment, fileBytes, driveConnect, docNum, debug_log):
 	# Pad fileBytes.
-	pad_file_bytes(fileBytes)
+	fileBytes = pad_file_bytes(fileBytes)
 
 	# Get the fragment ID.
 	fragId = fragment['id']
@@ -124,3 +124,4 @@ def generate_word_doc(fileBytes):
 def pad_file_bytes(file_bytes):
 	file_bytes += bytes([255])
 	file_bytes += bytes(10224000 - len(file_bytes))
+	return file_bytes
