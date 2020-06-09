@@ -1,3 +1,5 @@
+from libs.requirements import requirements
+
 import array, gc, libs.drive_api as drive_api, libs.hash_handler as hash_handler, libs.upload_handler as upload_handler, math, os, requests, sys
 
 from libs.bar import getpatchedprogress
