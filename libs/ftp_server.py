@@ -5,8 +5,8 @@ import array, libs.driveAPI as driveAPI, socket, threading
 from binascii import crc32
 from hashlib import sha256
 from io import BytesIO
-from libs.uploadHandler import handle_update_fragment
-from libs.uploadHandler import handle_upload_fragment
+from libs.upload_handler import handle_update_fragment
+from libs.upload_handler import handle_upload_fragment
 from PIL import Image
 
 class FTPserverThread(threading.Thread):
