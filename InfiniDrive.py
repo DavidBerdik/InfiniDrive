@@ -1,10 +1,8 @@
-import array, gc, libs.drive_api as drive_api, libs.hash_handler as hash_handler, math, os, requests, sys
+import array, gc, libs.drive_api as drive_api, libs.hash_handler as hash_handler, libs.upload_handler as upload_handler, math, os, requests, sys
 
 from libs.bar import getpatchedprogress
 from libs.ftp_server import init_ftp_server
 from libs.help import print_help
-from libs.upload_handler import handle_update_fragment
-from libs.upload_handler import handle_upload_fragment
 from PIL import Image
 from progress.bar import ShadyBar
 from progress.spinner import Spinner
@@ -204,10 +202,10 @@ class InfiniDrive:
 
 				if docNum <= len(orig_fragments):
 					# A remote fragment is present, so update it.
-					handle_update_fragment(drive_api, orig_fragments[docNum-1], fileBytes, driveConnect, docNum, self.debug_log)
+					upload_handler.handle_update_fragment(drive_api, orig_fragments[docNum-1], fileBytes, driveConnect, docNum, self.debug_log)
 				else:
 					# Process the fragment and upload it to Google Drive.
-					handle_upload_fragment(drive_api, fileBytes, driveConnect, dirId, docNum, failedFragmentsSet, self.debug_log)
+					upload_handler.handle_upload_fragment(drive_api, fileBytes, driveConnect, dirId, docNum, failedFragmentsSet, self.debug_log)
 
 				# Increment docNum for next Word document.
 				docNum = docNum + 1
@@ -232,10 +230,10 @@ class InfiniDrive:
 
 				if docNum <= len(orig_fragments):
 					# A remote fragment is present, so update it.
-					handle_update_fragment(drive_api, orig_fragments[docNum-1], fileBytes, driveConnect, docNum, self.debug_log)
+					upload_handler.handle_update_fragment(drive_api, orig_fragments[docNum-1], fileBytes, driveConnect, docNum, self.debug_log)
 				else:
 					# Process the fragment and upload it to Google Drive.
-					handle_upload_fragment(drive_api, fileBytes, driveConnect, dirId, docNum, failedFragmentsSet, self.debug_log)
+					upload_handler.handle_upload_fragment(drive_api, fileBytes, driveConnect, dirId, docNum, failedFragmentsSet, self.debug_log)
 
 				# Increment docNum for next Word document and read next chunk of data.
 				docNum = docNum + 1
@@ -253,40 +251,8 @@ class InfiniDrive:
 			drive_api.delete_file_by_id(drive_api.get_service(), orig_fragments[docNum]['id'])
 			docNum = docNum + 1
 
-		# For each document number in failedFragmentsSet, check for duplicates and remove any if they are present.
-		self.debug_log.write("----------------------------------------\n")
-		self.debug_log.write("Processing detected corruption...\n")
-		for name in failedFragmentsSet:
-			# Get duplicates.
-			duplicates = drive_api.get_files_with_name_from_folder(drive_api.get_service(), dirId, name)
-			self.debug_log.write("	Processing corruption of fragments with name " + str(name) + "\n")
-
-			# For tracking if we should check data validity
-			checkDataValidity = True
-
-			# For each entry in the duplicates array...
-			for file in duplicates:
-				if checkDataValidity:
-					# If we should check data validity, retrieve the file data and compare the hashes.
-					fileData = bytearray([j for i in list(Image.open(drive_api.get_image_bytes_from_doc(drive_api.get_service(), file)).convert('RGB').getdata()) for j in i])
-					
-					# Get fragment hashes.
-					crc32, sha256 = hash_handler.get_frag_hashes(file)
-
-					if(crc32 == hash_handler.calc_crc32(fileData) and sha256 == hash_handler.calc_sha256(fileData)):
-						# If the hashes are identical, mark for no further validity checks and do not delete the file.
-						checkDataValidity = False
-						self.debug_log.write("		Validity check disabled\n")
-					else:
-						# If the hashes do not match, delete the fragment.
-						drive_api.delete_file(drive_api.get_service(), file['id'])
-						self.debug_log.write("		Removed corrupt duplicate with ID " + file['id'] + " | checkDataValidity = True\n")
-				else:
-					# If we should not check data validity, delete the file.
-					drive_api.delete_file(drive_api.get_service(), file['id'])
-					self.debug_log.write("		Removed corrupt duplicate with ID " + file['id'] + " | checkDataValidity = False\n")
-
-		self.debug_log.write("Processing of detected corruption completed.\n")
+		# Process fragment upload failures
+		upload_handler.process_failed_fragments(drive_api, failedFragmentsSet, dirId, self.debug_log)
 
 		upBar.finish()
 

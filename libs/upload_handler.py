@@ -63,6 +63,42 @@ def handle_update_fragment(drive_api, fragment, fileBytes, driveConnect, docNum,
 				continue
 			break
 
+def process_failed_fragments(drive_api, failed_fragments, dir_id, debug_log):
+	# For each document number in failed_fragments, check for duplicates and remove any if they are present.
+	debug_log.write("----------------------------------------\n")
+	debug_log.write("Processing detected corruption...\n")
+	for name in failed_fragments:
+		# Get duplicates.
+		duplicates = drive_api.get_files_with_name_from_folder(drive_api.get_service(), dir_id, name)
+		debug_log.write("	Processing corruption of fragments with name " + str(name) + "\n")
+
+		# For tracking if we should check data validity
+		checkDataValidity = True
+
+		# For each entry in the duplicates array...
+		for file in duplicates:
+			if checkDataValidity:
+				# If we should check data validity, retrieve the file data and compare the hashes.
+				fileData = bytearray([j for i in list(Image.open(drive_api.get_image_bytes_from_doc(drive_api.get_service(), file)).convert('RGB').getdata()) for j in i])
+				
+				# Get fragment hashes.
+				crc32, sha256 = hash_handler.get_frag_hashes(file)
+
+				if(crc32 == hash_handler.calc_crc32(fileData) and sha256 == hash_handler.calc_sha256(fileData)):
+					# If the hashes are identical, mark for no further validity checks and do not delete the file.
+					checkDataValidity = False
+					debug_log.write("		Validity check disabled\n")
+				else:
+					# If the hashes do not match, delete the fragment.
+					drive_api.delete_file(drive_api.get_service(), file['id'])
+					debug_log.write("		Removed corrupt duplicate with ID " + file['id'] + " | checkDataValidity = True\n")
+			else:
+				# If we should not check data validity, delete the file.
+				drive_api.delete_file(drive_api.get_service(), file['id'])
+				debug_log.write("		Removed corrupt duplicate with ID " + file['id'] + " | checkDataValidity = False\n")
+
+	debug_log.write("Processing of detected corruption completed.\n")
+
 # Generates a Word document containing the fragment, saves the document to a BytesIO object, and returns the object.
 def generate_word_doc(fileBytes):
 	# Generate a new Word document.
@@ -79,7 +115,7 @@ def generate_word_doc(fileBytes):
 	# Save the generated Word document.
 	mem_doc = BytesIO()
 	doc.save(mem_doc)
-	
+
 	# Return the BytesIO object that stores the document.
 	return mem_doc
 
