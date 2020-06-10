@@ -228,6 +228,7 @@ def get_files_list_from_folder(service, folderId):
 		page_token = results.get('nextPageToken')
 		if not page_token:
 			break
+	files.reverse()
 	return files
 
 # Returns a list of files in a folder with the given ID with the given name

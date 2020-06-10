@@ -96,7 +96,7 @@ class InfiniDrive:
 		total = len(files)
 		count = 1
 		downBar = ShadyBar('Downloading...', max=total) # Progress bar
-		for file in reversed(files):
+		for file in files:
 			downBar.next()
 
 			# Get the RGB pixel values from the image as a list of tuples that we will break up and then convert to a bytestring.
@@ -154,8 +154,7 @@ class InfiniDrive:
 		
 		# Get a list of the fragments that currently make up the file. If this is a new upload, it should come back empty.
 		orig_fragments = drive_api.get_files_list_from_folder(driveConnect, dirId)
-		orig_fragments.reverse()
-		
+
 		# Determine if upload is taking place from an HTTP or HTTPS URL.
 		urlUpload = False
 		if file_path[0:4].lower() == 'http':

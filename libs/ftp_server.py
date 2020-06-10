@@ -208,11 +208,11 @@ class FTPserverThread(threading.Thread):
 
 		# If the client has requested a custom starting position, slice off irrelevant fragments and calculate the fragment byte offset.
 		if self.rest:
-			files = files[:-(self.pos // 10224000)]
+			files = files[self.pos // 10224000:]
 			self.frag_byte_offset = self.pos % 10224000
 
 		# For all fragments...
-		for file in reversed(files):
+		for file in files:
 			# Get the RGB pixel values from the image as a list of tuples that we will break up and then convert to a bytestring.
 			while True:
 				try:
@@ -264,7 +264,6 @@ class FTPserverThread(threading.Thread):
 
 		# Get a list of the fragments that currently make up the file. If this is a new upload, it should come back empty.
 		orig_fragments = drive_api.get_files_list_from_folder(self.drive_service, dirId)
-		orig_fragments.reverse()
 
 		# Store the fragment number.
 		docNum = 1
