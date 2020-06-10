@@ -204,8 +204,8 @@ def get_file_size(service, file_name):
 	files = get_files_list_from_folder(service, get_file_id_from_name(service, file_name))
 	
 	# Get the bytes from the last fragment.
-	last_frag_bytes_len = len(array.array('B', [j for i in list(Image.open(get_image_bytes_from_doc(service, files[0])).convert('RGB').getdata()) for j in i]) \
-		.tobytes().rstrip(b'\x00')[:-1])
+	last_frag_bytes_len = len(array.array('B', [j for i in list(Image.open(get_image_bytes_from_doc(service, files[len(files) - 1])) \
+		.convert('RGB').getdata()) for j in i]).tobytes().rstrip(b'\x00')[:-1])
 	
 	# Calculate the number of bytes that make up the file.
 	file_size = ((len(files) - 1) * 10223999) + last_frag_bytes_len
