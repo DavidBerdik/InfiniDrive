@@ -200,16 +200,17 @@ def rename_file(service, old_name, new_name):
 
 # Returns the size of the file with the given name in bytes.
 def get_file_size(service, file_name):
-	# Get a list of the files in the given folder.
-	files = get_files_list_from_folder(service, get_file_id_from_name(service, file_name))
-	
+	# Get the last file in the given folder.
+	query = "'" + get_file_id_from_name(service, file_name) + "' in parents"
+	results = service.files().list(q=query, fields='files(id, name)', **{}).execute()
+	last_file = results.get('files', [])[0]
+
 	# Get the bytes from the last fragment.
-	last_frag_bytes_len = len(array.array('B', [j for i in list(Image.open(get_image_bytes_from_doc(service, files[len(files) - 1])) \
+	last_frag_bytes_len = len(array.array('B', [j for i in list(Image.open(get_image_bytes_from_doc(service, last_file)) \
 		.convert('RGB').getdata()) for j in i]).tobytes().rstrip(b'\x00')[:-1])
-	
+
 	# Calculate the number of bytes that make up the file.
-	file_size = ((len(files) - 1) * 10223999) + last_frag_bytes_len
-	return file_size
+	return ((int(last_file['name']) - 1) * 10223999) + last_frag_bytes_len
 
 # Returns a list of files in a folder with the given ID
 def get_files_list_from_folder(service, folderId):
