@@ -208,8 +208,8 @@ class FTPserverThread(threading.Thread):
 
 		# If the client has requested a custom starting position, slice off irrelevant fragments and calculate the fragment byte offset.
 		if self.rest:
-			files = files[self.pos // 10224000:]
-			self.frag_byte_offset = self.pos % 10224000
+			files = files[self.pos // 10223999:]
+			self.frag_byte_offset = self.pos % 10223999
 
 		# For all fragments...
 		for file in files:
