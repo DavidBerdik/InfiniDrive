@@ -250,6 +250,9 @@ class FTPserverThread(threading.Thread):
 			# Send the byte array to the client.
 			self.datasock.send(pixelVals)
 
+			# Increment fragment_index
+			fragment_index += 1
+
 		# File transfer is complete. Close the data socket and report completion.
 		self.stop_datasock()
 		self.conn.send(b'226 Transfer complete.\r\n')
