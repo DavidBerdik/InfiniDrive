@@ -230,6 +230,10 @@ def get_files_list_from_folder(service, folderId):
 	files.reverse()
 	return files
 
+# Returns the number of fragments that make up the file with the  given name.
+def get_fragment_count(service, file_name):
+	return int(get_last_file_from_folder(service, file_name)['name'])
+
 # Returns the last file in a folder with the given name
 def get_last_file_from_folder(service, file_name):
 	query = "'" + get_file_id_from_name(service, file_name) + "' in parents"
