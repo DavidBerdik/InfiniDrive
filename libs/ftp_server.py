@@ -232,14 +232,13 @@ class FTPserverThread(threading.Thread):
 				if len(pixelVals) == 10224000:
 					break
 
-			# Compare the hashes stored with document to the hashes of pixelVals. If they do not match, terminate download and report corruption.
-			if('properties' in file and (file['properties']['crc32'] != hex(crc32(bytearray(pixelVals))) or
-			  ('sha256' in file['properties'] and file['properties']['sha256'] != sha256(bytearray(pixelVals)).hexdigest()))):
+			# If the downloaded values do not match the fragment hash, terminate download and report corruption.
+			if hash_handler.is_download_invalid(file, bytearray(pixelVals)):
 				self.stop_datasock()
 				self.conn.send(b'551 File is corrupted.\r\n')
 				return
 
-			# Build the final byte array.
+			# Strip the null byte padding and "spacer byte" from pixelVals.
 			pixelVals = array.array('B', pixelVals).tobytes().rstrip(b'\x00')[:-1]
 
 			# If the client requested a custom starting position, slice off the start of the byte array using the calculated frag_byte_offset value.
