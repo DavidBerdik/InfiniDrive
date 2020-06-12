@@ -203,16 +203,25 @@ class FTPserverThread(threading.Thread):
 			self.conn.send(b'551 File does not exist.\r\n')
 			return
 
-		# Get a list of the fragments that make up the given InfiniDrive file.
-		files = drive_api.get_files_list_from_folder(self.drive_service, drive_api.get_file_id_from_name(self.drive_service, filename))
+		# Get a count of the number of fragments that make up the file.
+		fragment_count = drive_api.get_fragment_count(self.drive_service, filename)
+
+		# For indexing fragments.
+		fragment_index = 1
+
+		# Get the InfiniDrive file ID from its name
+		file_id = drive_api.get_file_id_from_name(self.drive_service, filename)
 
 		# If the client has requested a custom starting position, slice off irrelevant fragments and calculate the fragment byte offset.
 		if self.rest:
-			files = files[self.pos // 10223999:]
+			fragment_index = self.pos // 10223999 + 1
 			self.frag_byte_offset = self.pos % 10223999
 
 		# For all fragments...
-		for file in files:
+		while fragment_index <= fragment_count:
+			# Get the fragment with the given index.
+			file = drive_api.get_files_with_name_from_folder(self.drive_service, file_id, str(fragment_index))[0]
+
 			# Get the RGB pixel values from the image as a list of tuples that we will break up and then convert to a bytestring.
 			while True:
 				try:
