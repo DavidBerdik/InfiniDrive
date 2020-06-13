@@ -217,10 +217,22 @@ class FTPserverThread(threading.Thread):
 			fragment_index = self.pos // 10223999 + 1
 			self.frag_byte_offset = self.pos % 10223999
 
+		# Asynchronously retrieve a list of all files. We do this so that we can reduce Drive API calls, but if we wait for the list,
+		# the FTP client will likely time out before we can finish, so we will retrieve one fragment at a time at first while the
+		# entire list is retrieved in the background here.
+		files = list()
+		threading.Thread(target=drive_api.get_files_list_from_folder_async, args=(drive_api.get_service(), file_id, files)).start()
+
 		# For all fragments...
 		while fragment_index <= fragment_count:
-			# Get the fragment with the given index.
-			file = drive_api.get_files_with_name_from_folder(self.drive_service, file_id, str(fragment_index))[0]
+			# Get the fragment with the given index
+			file = None
+			if files == []:
+				# The fragment list is not available yet, so retrieve one fragment.
+				file = drive_api.get_files_with_name_from_folder(self.drive_service, file_id, str(fragment_index))[0]
+			else:
+				# The fragment list is available, so use it to locate the fragment.
+				file = files[0][fragment_index - 1]
 
 			# Get the RGB pixel values from the image as a list of tuples that we will break up and then convert to a bytestring.
 			while True:

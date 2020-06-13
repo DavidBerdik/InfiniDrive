@@ -230,6 +230,10 @@ def get_files_list_from_folder(service, folderId):
 	files.reverse()
 	return files
 
+# An asynchronous version of get_files_list_from_folder
+def get_files_list_from_folder_async(service, folder_id, files):
+	files.append(get_files_list_from_folder(service, folder_id))
+
 # Returns the number of fragments that make up the file with the  given name.
 def get_fragment_count(service, file_name):
 	return int(get_last_file_from_folder(service, file_name)['name'])
