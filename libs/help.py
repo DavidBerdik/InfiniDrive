@@ -25,3 +25,4 @@ def print_help(version):
 	print(">> update <remote file name> <file path OR http/https URL> - Updates the specified remote file with the file located at the specified path")
 	print(">> size <file name> - Lists the size of the specified InfiniDrive file")
 	print(">> delete <file name> <optional flag: force-delete> - Deletes the specified InfiniDrive file")
+	print(">> ftp <username> <password> <port> - Starts the InfiniDrive FTP server with the given username, password, and port number")
