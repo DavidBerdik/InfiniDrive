@@ -2,7 +2,6 @@
 # Adapted from https://gist.github.com/risc987/184d49fa1a86e3c6c91c
 import array, gc, libs.drive_api as drive_api, libs.hash_handler as hash_handler, libs.upload_handler as upload_handler, socket, threading
 
-from io import BytesIO
 from os import mkdir
 from os import remove
 from os.path import exists
@@ -10,7 +9,7 @@ from PIL import Image
 from shutil import rmtree
 
 class FTPserverThread(threading.Thread):
-	def __init__(self, pair, local_username, local_password, drive_service):
+	def __init__(self, pair, local_username, local_password, drive_service, debug_log):
 		conn, addr = pair
 		self.conn = conn
 		self.addr = addr # Client Address
@@ -20,6 +19,7 @@ class FTPserverThread(threading.Thread):
 		self.rest = False
 		self.pasv_mode = False
 		self.input_username = ''
+		self.debug_log = debug_log
 		threading.Thread.__init__(self)
 
 	def run(self):
@@ -332,10 +332,10 @@ class FTPserverThread(threading.Thread):
 		while file_bytes:
 			if doc_num <= len(orig_fragments):
 				# A remote fragment is present, so update it.
-				upload_handler.handle_update_fragment(drive_api, orig_fragments[doc_num-1], file_bytes, drive_connect, doc_num, BytesIO())
+				upload_handler.handle_update_fragment(drive_api, orig_fragments[doc_num-1], file_bytes, drive_connect, doc_num, self.debug_log)
 			else:
 				# Process the fragment and upload it to Google Drive.
-				upload_handler.handle_upload_fragment(drive_api, file_bytes, drive_connect, dir_id, doc_num, failed_fragments, BytesIO())
+				upload_handler.handle_upload_fragment(drive_api, file_bytes, drive_connect, dir_id, doc_num, failed_fragments, self.debug_log)
 
 			# Increment docNum for next Word document and read next chunk of data.
 			doc_num = doc_num + 1
@@ -353,7 +353,7 @@ class FTPserverThread(threading.Thread):
 			doc_num = doc_num + 1
 
 		# Process fragment upload failures
-		#upload_handler.process_failed_fragments(drive_api, failed_fragments, dir_id, BytesIO(b'test'))
+		upload_handler.process_failed_fragments(drive_api, failed_fragments, dir_id, self.debug_log)
 
 		# Delete the local cache of the file.
 		remove('ftp_upload_cache/' + str(file_name))
@@ -362,24 +362,25 @@ class FTPserverThread(threading.Thread):
 		print('Asynchronous upload of ' + str(file_name) + ' complete.')
 
 class FTPserver(threading.Thread):
-	def __init__(self, local_username, local_password, port):
+	def __init__(self, local_username, local_password, port, debug_log):
 		self.local_username = local_username
 		self.local_password = local_password
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.sock.bind(('localhost', port))
+		self.debug_log = debug_log
 		threading.Thread.__init__(self)
 
 	def run(self):
 		self.sock.listen(5)
 		while True:
-			th = FTPserverThread(self.sock.accept(), self.local_username, self.local_password, drive_api.get_service())
+			th = FTPserverThread(self.sock.accept(), self.local_username, self.local_password, drive_api.get_service(), self.debug_log)
 			th.daemon = True
 			th.start()
 
 	def stop(self):
 		self.sock.close()
 
-def init_ftp_server(user='user', password='password', port=21):
+def init_ftp_server(user, password, port, debug_log):
 	# Initializes the FTP server that interfaces with InfiniDrive
 
 	# Recreate the FTP server upload cache directory
@@ -388,7 +389,7 @@ def init_ftp_server(user='user', password='password', port=21):
 	mkdir('ftp_upload_cache')
 
 	# Initialize the FTP server
-	ftp = FTPserver(user, password, port)
+	ftp = FTPserver(user, password, port, debug_log)
 	ftp.daemon = True
 	ftp.start()
 	print('InfiniDrive FTP Interface Server Started!')

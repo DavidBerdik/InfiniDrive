@@ -24,7 +24,7 @@ class InfiniDrive:
 		elif len(sys.argv) == 4 and str(sys.argv[1]) == "update": self.update()
 		elif len(sys.argv) == 3 and str(sys.argv[1]) == "size": self.get_file_size()
 		elif len(sys.argv) >= 3 and str(sys.argv[1]) == "delete": self.delete()
-		elif len(sys.argv) == 5 and str(sys.argv[1]) == "ftp": init_ftp_server(str(sys.argv[2]), str(sys.argv[3]), int(sys.argv[4]))
+		elif len(sys.argv) == 5 and str(sys.argv[1]) == "ftp": init_ftp_server(str(sys.argv[2]), str(sys.argv[3]), int(sys.argv[4]), self.debug_log)
 		elif len(sys.argv) == 2 and str(sys.argv[1]) == "help": print_help(self.version)
 		else: print("Invalid command. Please see the 'help' command for usage instructions.")
 
