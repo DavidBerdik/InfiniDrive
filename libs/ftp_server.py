@@ -1,13 +1,13 @@
 # Provides an FTP Server to allow interaction with InfiniDrive through an FTP client.
 # Adapted from https://gist.github.com/risc987/184d49fa1a86e3c6c91c
-import array, libs.drive_api as drive_api, libs.hash_handler as hash_handler, socket, threading
+import array, gc, libs.drive_api as drive_api, libs.hash_handler as hash_handler, libs.upload_handler as upload_handler, socket, threading
 
-from binascii import crc32
-from hashlib import sha256
 from io import BytesIO
-from libs.upload_handler import handle_update_fragment
-from libs.upload_handler import handle_upload_fragment
+from os import mkdir
+from os import remove
+from os.path import exists
 from PIL import Image
+from shutil import rmtree
 
 class FTPserverThread(threading.Thread):
 	def __init__(self, pair, local_username, local_password, drive_service):
@@ -271,82 +271,95 @@ class FTPserverThread(threading.Thread):
 	def STOR(self, cmd):
 		# Uploads an InfiniDrive file
 		# Extract the name of the file to upload from the command
-		filename = cmd[5:-2].lstrip('/')
+		file_name = str(cmd[5:-2].lstrip('/'))
+
+		# If a file with the given name does not already exist, create a new InfiniDrive file for the fragments.
+		if not drive_api.file_with_name_exists(self.drive_service, file_name):
+			drive_api.begin_storage(file_name)
+
+		# Open file for writing.
+		file_handle = open('ftp_upload_cache/' + str(file_name), 'wb')
 
 		# Open the data socket.
-		print('Uploading:', filename)
+		print('Uploading:', str(file_name))
 		self.conn.send(b'150 Opening data connection.\r\n')
 		self.start_datasock()
 
-		# If a file with the given name does not already exist, create a new InfiniDrive file for the fragments.
-		if not drive_api.file_with_name_exists(self.drive_service, filename):
-			drive_api.begin_storage(filename)
-
-		# Get the ID of the InfiniDrive file (the folder that will store the fragments.
-		dirId = drive_api.get_file_id_from_name(self.drive_service, filename)
-
-		# Get a list of the fragments that currently make up the file. If this is a new upload, it should come back empty.
-		orig_fragments = drive_api.get_files_list_from_folder(self.drive_service, dirId)
-
-		# Store the fragment number.
-		docNum = 1
-
-		# Used to keep track of the numbers for fragments that have failed uploads.
-		failedFragmentsSet = set()
-
-		# Receive file data in chunks from the client.
+		# Receive the file from the client.
 		while True:
-			fileBytes = self.datasock.recv(10223999)
-			
-			# If no data is received from the client, exit the loop.
-			if not fileBytes:
+			data = self.datasock.recv(1024)
+			if not data:
 				break
-
-			if docNum <= len(orig_fragments):
-				# A remote fragment is present, so update it.
-				# First, extract the hash value if present.
-				currentHashCrc32 = ''
-				currentHashSha256 = ''
-				if 'properties' in orig_fragments[docNum-1]:
-					currentHashCrc32 = orig_fragments[docNum-1]['properties']['crc32']
-					if 'sha256' in orig_fragments[docNum-1]['properties']:
-						currentHashSha256 = orig_fragments[docNum-1]['properties']['sha256']
-				# Process update.
-				handle_update_fragment(drive_api, fileBytes, currentHashCrc32, currentHashSha256, self.drive_service, orig_fragments[docNum-1]['id'], docNum, BytesIO())
-			else:
-				# Process the fragment and upload it to Google Drive.
-				handle_upload_fragment(drive_api, fileBytes, self.drive_service, dirId, docNum, failedFragmentsSet, BytesIO())
-
-			# Increment docNum for next Word document.
-			docNum = docNum + 1
+			file_handle.write(data)
+		file_handle.close()
 
 		# Close the socket and report a successful file transfer.
 		self.stop_datasock()
 		self.conn.send(b'226 Transfer complete.\r\n')
 
-		# For each document number in failedFragmentsSet, check for duplicates and remove any if they are present.
-		for name in failedFragmentsSet:
-			# Get duplicates.
-			duplicates = drive_api.get_files_with_name_from_folder(self.drive_service, dirId, name)
+		# Trigger asynchronous upload of the file to Google Drive.
+		threading.Thread(target=self.async_file_upload, args=(file_name,)).start()
 
-			# For tracking if we should check data validity
-			checkDataValidity = True
+	def async_file_upload(self, file_name):
+		# Used asynchronously for uploading a file to InfiniDrive after it has been uploaded and cached on the FTP server.
+		print('Starting asynchronous upload of ' + str(file_name) + '.')
 
-			# For each entry in the duplicates array...
-			for file in duplicates:
-				if checkDataValidity:
-					# If we should check data validity, retrieve the file data and compare the hashes.
-					fileData = bytearray([j for i in list(Image.open(drive_api.get_image_bytes_from_doc(self.drive_service, file)).convert('RGB').getdata()) for j in i])
+		# Get Drive service.
+		drive_connect = drive_api.get_service()
 
-					if(file['properties']['crc32'] == hex(crc32(fileData)) and file['properties']['sha256'] == sha256(fileBytes).hexdigest()):
-						# If the hashes are identical, mark for no further validity checks and do not delete the file.
-						checkDataValidity = False
-					else:
-						# If the hashes do not match, delete the fragment.
-						drive_api.delete_file(self.drive_service, file['id'])
-				else:
-					# If we should not check data validity, delete the file.
-					drive_api.delete_file(self.drive_service, file['id'])
+		# Get directory ID.
+		dir_id = drive_api.get_file_id_from_name(drive_connect, file_name)
+
+		# Get a list of the fragments that currently make up the file. If this is a new upload, it should come back empty.
+		orig_fragments = drive_api.get_files_list_from_folder(drive_connect, dir_id)
+
+		# Set chunk size for reading files to 9.750365257263184MB (10223999 bytes)
+		read_chunk_sizes = 10223999
+
+		# Doc number
+		doc_num = 1
+
+		# Used to keep track of the numbers for fragments that have failed uploads.
+		failed_fragments = set()
+
+		# Iterate through file in chunks.
+		infile = open('ftp_upload_cache/' + str(file_name), 'rb')
+
+		# Read an initial chunk from the file.
+		file_bytes = infile.read(read_chunk_sizes)
+
+		# Keep looping until no more data is read.
+		while file_bytes:
+			if doc_num <= len(orig_fragments):
+				# A remote fragment is present, so update it.
+				upload_handler.handle_update_fragment(drive_api, orig_fragments[doc_num-1], file_bytes, drive_connect, doc_num, BytesIO())
+			else:
+				# Process the fragment and upload it to Google Drive.
+				upload_handler.handle_upload_fragment(drive_api, file_bytes, drive_connect, dir_id, doc_num, failed_fragments, BytesIO())
+
+			# Increment docNum for next Word document and read next chunk of data.
+			doc_num = doc_num + 1
+			file_bytes = infile.read(read_chunk_sizes)
+
+			# Run garbage collection. Hopefully, this will prevent process terminations by the operating system on memory-limited devices such as the Raspberry Pi.
+			gc.collect()
+
+		infile.close()
+
+		# If an update took place and the new file had fewer fragments than the previous file, delete any leftover fragments from the previous upload.
+		doc_num = doc_num - 1
+		while doc_num < len(orig_fragments):
+			drive_api.delete_file_by_id(drive_connect, orig_fragments[doc_num]['id'])
+			doc_num = doc_num + 1
+
+		# Process fragment upload failures
+		#upload_handler.process_failed_fragments(drive_api, failed_fragments, dir_id, BytesIO(b'test'))
+
+		# Delete the local cache of the file.
+		remove('ftp_upload_cache/' + str(file_name))
+
+		# Report completion of the asynchronous upload.
+		print('Asynchronous upload of ' + str(file_name) + ' complete.')
 
 class FTPserver(threading.Thread):
 	def __init__(self, local_username, local_password, port):
@@ -368,9 +381,19 @@ class FTPserver(threading.Thread):
 
 def init_ftp_server(user='user', password='password', port=21):
 	# Initializes the FTP server that interfaces with InfiniDrive
+
+	# Recreate the FTP server upload cache directory
+	if exists('ftp_upload_cache'):
+		rmtree('ftp_upload_cache')
+	mkdir('ftp_upload_cache')
+
+	# Initialize the FTP server
 	ftp = FTPserver(user, password, port)
 	ftp.daemon = True
 	ftp.start()
 	print('InfiniDrive FTP Interface Server Started!')
 	input('Press enter key to shut down server.\n')
+
+	# Enter key was pressed. Stop server and delete FTP server upload cache directory.
 	ftp.stop()
+	rmtree('ftp_upload_cache')
