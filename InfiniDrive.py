@@ -1,6 +1,6 @@
 from libs.requirements import requirements
 
-import array, gc, libs.drive_api as drive_api, libs.hash_handler as hash_handler, libs.upload_handler as upload_handler, math, os, requests, sys
+import array, gc, libs.drive_api as drive_api, libs.hash_handler as hash_handler, libs.upload_handler as upload_handler, math, os, requests, sys, threading
 
 from libs.bar import getpatchedprogress
 from libs.ftp_server import init_ftp_server
@@ -78,13 +78,31 @@ class InfiniDrive:
 			print('File rename failed.')
 
 	def download(self):
+		# Save file name from command line arguments.
+		file_name = str(sys.argv[2])
+
 		# Check if the file exists. If it does not, print an error message and return.
-		if not drive_api.file_with_name_exists(drive_api.get_service(), sys.argv[2]):
-			print('File with name "' + str(sys.argv[2]) + '" does not exist.')
+		if not drive_api.file_with_name_exists(drive_api.get_service(), file_name):
+			print('File with name "' + file_name + '" does not exist.')
 			return
-		
-		# Get a list of the files in the given folder.
-		files = drive_api.get_files_list_from_folder(drive_api.get_service(), drive_api.get_file_id_from_name(drive_api.get_service(), sys.argv[2]))
+
+		# Get Drive service.
+		drive_service = drive_api.get_service()
+
+		# Get a count of the number of fragments that make up the file.
+		fragment_count = drive_api.get_fragment_count(drive_service, file_name)
+
+		# For indexing fragments.
+		fragment_index = 1
+
+		# Get the InfiniDrive file ID from its name
+		file_id = drive_api.get_file_id_from_name(drive_service, file_name)
+
+		# Asynchronously retrieve a list of all files. We do this so that we can reduce Drive API calls, but if we wait for the list,
+		# the FTP client will likely time out before we can finish, so we will retrieve one fragment at a time at first while the
+		# entire list is retrieved in the background here.
+		files = list()
+		threading.Thread(target=drive_api.get_files_list_from_folder_async, args=(drive_api.get_service(), file_id, files)).start()
 
 		# Open a file at the user-specified path to write the data to
 		result = open(str(sys.argv[3]), "wb")
@@ -92,12 +110,19 @@ class InfiniDrive:
 		# Download complete print flag
 		showDownloadComplete = True
 
-		# For all files that are in the list...
-		total = len(files)
-		count = 1
-		downBar = ShadyBar('Downloading...', max=total) # Progress bar
-		for file in files:
+		# For all fragments...
+		downBar = ShadyBar('Downloading...', max=fragment_count) # Progress bar
+		while fragment_index <= fragment_count:
 			downBar.next()
+
+			# Get the fragment with the given index
+			file = None
+			if files == []:
+				# The fragment list is not available yet, so retrieve one fragment.
+				file = drive_api.get_files_with_name_from_folder(drive_service, file_id, str(fragment_index))[0]
+			else:
+				# The fragment list is available, so use it to locate the fragment.
+				file = files[0][fragment_index - 1]
 
 			# Get the RGB pixel values from the image as a list of tuples that we will break up and then convert to a bytestring.
 			while True:
@@ -125,7 +150,7 @@ class InfiniDrive:
 
 			# Write the data stored in "pixelVals" to the output file.
 			result.write(pixelVals)
-			count += 1
+			fragment_index += 1
 
 			# Run garbage collection. Hopefully, this will prevent process terminations by the operating system on memory-limited devices such as the Raspberry Pi.
 			gc.collect()
