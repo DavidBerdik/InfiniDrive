@@ -40,6 +40,7 @@ class FTPserverThread(threading.Thread):
 						self.conn.send(b'502 Command not implemented.\r\n')
 					else:
 						print('FTP SERVER ERROR:', e)
+						self.debug_log.write('FTP SERVER ERROR:', e, '\n')
 						self.conn.send(b'500 Sorry.\r\n')
 
 	def SYST(self, cmd):
@@ -238,7 +239,11 @@ class FTPserverThread(threading.Thread):
 			while True:
 				try:
 					pixelVals = list(Image.open(drive_api.get_image_bytes_from_doc(self.drive_service, file)).convert('RGB').getdata())
-				except:
+				except Exception as e:
+					self.debug_log.write("----------------------------------------\n")
+					self.debug_log.write("Fragment download failure\n")
+					self.debug_log.write("Error:\n")
+					self.debug_log.write(str(e) + "\n")
 					continue
 				pixelVals = [j for i in pixelVals for j in i]
 				if len(pixelVals) == 10224000:
@@ -392,8 +397,11 @@ def init_ftp_server(user, password, port, debug_log):
 	ftp = FTPserver(user, password, port, debug_log)
 	ftp.daemon = True
 	ftp.start()
+	debug_log.write('Running in FTP Interface Server mode, port ' + str(port) + '\n')
 	print('InfiniDrive FTP Interface Server Started!')
-	input('Press enter key to shut down server.\n')
+	print('NOTE: The FTP server binds to localhost. Only connections from localhost will be accepted.')
+	print('WARNING: The FTP server interface is a BETA feature. Please report any problems you encounter with this feature on GitHub at https://github.com/DavidBerdik/InfiniDrive/issues')
+	input('To shut down server, press enter key.\n\n')
 
 	# Enter key was pressed. Stop server and delete FTP server upload cache directory.
 	ftp.stop()
