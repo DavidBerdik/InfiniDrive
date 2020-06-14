@@ -1,14 +1,8 @@
 # Ignore "pycache" directory
 __pycache__/
 
-# Ignore "tmp" directory
-tmp/
-
-# Ignore "dltemp" directory
-dltemp/
-
-# Ignore "unlimited-drive.pyc" file
-unlimited-drive.pyc
+# Ignore "ftp_upload_cache" directory
+ftp_upload_cache/
 
 # Ignore "credentials.json" and "token.pickle" files
 credentials.json
