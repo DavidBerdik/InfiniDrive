@@ -203,6 +203,10 @@ def get_file_size(service, file_name):
 	# Get the last file in the given folder.
 	last_file = get_last_file_from_folder(service, file_name)
 
+	# If last_file is null, return 0 since there are no fragments.
+	if last_file == None:
+		return 0
+
 	# Get the bytes from the last fragment.
 	last_frag_bytes_len = len(array.array('B', [j for i in list(Image.open(get_image_bytes_from_doc(service, last_file)) \
 		.convert('RGB').getdata()) for j in i]).tobytes().rstrip(b'\x00')[:-1])
@@ -234,15 +238,21 @@ def get_files_list_from_folder(service, folderId):
 def get_files_list_from_folder_async(service, folder_id, files):
 	files.append(get_files_list_from_folder(service, folder_id))
 
-# Returns the number of fragments that make up the file with the  given name.
+# Returns the number of fragments that make up the file with the given name.
 def get_fragment_count(service, file_name):
-	return int(get_last_file_from_folder(service, file_name)['name'])
+	last_fragment = get_last_file_from_folder(service, file_name)
+	if last_fragment == None:
+		return 0
+	return int(last_fragment['name'])
 
-# Returns the last file in a folder with the given name
+# Returns the last file in a folder with the given name. If no fragments exist, return None.
 def get_last_file_from_folder(service, file_name):
 	query = "'" + get_file_id_from_name(service, file_name) + "' in parents"
 	results = service.files().list(q=query, fields='files(id, name)', **{}).execute()
-	return results.get('files', [])[0]
+	last_hundred_files = results.get('files', [])
+	if len(last_hundred_files) == 0:
+		return None
+	return last_hundred_files[0]
 
 # Returns a list of files in a folder with the given ID with the given name
 def get_files_with_name_from_folder(service, folderId, name):
