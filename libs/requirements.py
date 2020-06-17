@@ -6,7 +6,8 @@ class requirements:
 
 	def check_imports(self):
 		try:
-			import array, gc, libs.drive_api as drive_api, math, os, os.path, pickle, requests, sys, time, zipfile
+			import array, gc, libs.drive_api, libs.hash_handler, libs.upload_handler, math, os, os.path, pickle, requests, socket, sys, threading, zipfile
+
 			from apiclient.http import MediaIoBaseDownload
 			from apiclient.http import MediaIoBaseUpload
 			from binascii import crc32
@@ -17,12 +18,15 @@ class requirements:
 			from hashlib import sha256
 			from io import BytesIO
 			from libs.bar import getpatchedprogress
+			from libs.ftp_server import init_ftp_server
 			from libs.help import print_help
-			from libs.upload_handler import handle_update_fragment
-			from libs.upload_handler import handle_upload_fragment
+			from os import mkdir
+			from os import remove
+			from os.path import exists
 			from PIL import Image
 			from progress.bar import ShadyBar
 			from progress.spinner import Spinner
+			from shutil import rmtree
 			from tabulate import tabulate
 		except (ModuleNotFoundError, ImportError) as error:
 			print('\nOops! ', end = ' ')
