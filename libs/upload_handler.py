@@ -90,11 +90,11 @@ def process_failed_fragments(drive_api, failed_fragments, dir_id, debug_log):
 					debug_log.write("		Validity check disabled\n")
 				else:
 					# If the hashes do not match, delete the fragment.
-					drive_api.delete_file(drive_api.get_service(), file['id'])
+					drive_api.delete_file_by_id(drive_api.get_service(), file['id'])
 					debug_log.write("		Removed corrupt duplicate with ID " + file['id'] + " | checkDataValidity = True\n")
 			else:
 				# If we should not check data validity, delete the file.
-				drive_api.delete_file(drive_api.get_service(), file['id'])
+				drive_api.delete_file_by_id(drive_api.get_service(), file['id'])
 				debug_log.write("		Removed corrupt duplicate with ID " + file['id'] + " | checkDataValidity = False\n")
 
 	debug_log.write("Processing of detected corruption completed.\n")
