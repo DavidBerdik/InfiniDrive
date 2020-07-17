@@ -2,6 +2,7 @@ google-api-python-client
 google-auth-oauthlib
 pillow
 progress
+PySimpleGUI
 python-docx
 requests
 tabulate
