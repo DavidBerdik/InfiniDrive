@@ -5,6 +5,7 @@ import array, gc, libs.drive_api as drive_api, libs.hash_handler as hash_handler
 from libs.bar import getpatchedprogress
 from libs.ftp_server import init_ftp_server
 from libs.help import print_help
+from libs.ui import UI
 from PIL import Image
 from progress.bar import ShadyBar
 from progress.spinner import Spinner
@@ -26,7 +27,7 @@ class InfiniDrive:
 		elif len(sys.argv) >= 3 and str(sys.argv[1]) == "delete": self.delete()
 		elif len(sys.argv) == 5 and str(sys.argv[1]) == "ftp": init_ftp_server(str(sys.argv[2]), str(sys.argv[3]), int(sys.argv[4]), self.debug_log)
 		elif len(sys.argv) == 2 and str(sys.argv[1]) == "help": print_help(self.version)
-		else: print("Invalid command. Please see the 'help' command for usage instructions.")
+		else: UI(self.version)
 
 		self.debug_log.write("----------------------------------------\n")
 		self.debug_log.write("Normal termination.")
