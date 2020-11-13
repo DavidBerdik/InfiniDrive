@@ -9,7 +9,7 @@ from PIL import Image
 from shutil import rmtree
 
 class FTPserverThread(threading.Thread):
-	def __init__(self, pair, local_username, local_password, drive_service, debug_log):
+	def __init__(self, pair, local_username, local_password, drive_service):
 		conn, addr = pair
 		self.conn = conn
 		self.addr = addr # Client Address
@@ -19,7 +19,6 @@ class FTPserverThread(threading.Thread):
 		self.rest = False
 		self.pasv_mode = False
 		self.input_username = ''
-		self.debug_log = debug_log
 		threading.Thread.__init__(self)
 
 	def run(self):
@@ -40,7 +39,6 @@ class FTPserverThread(threading.Thread):
 						self.conn.send(b'502 Command not implemented.\r\n')
 					else:
 						print('FTP SERVER ERROR:', e)
-						self.debug_log.write('FTP SERVER ERROR:', e, '\n')
 						self.conn.send(b'500 Sorry.\r\n')
 
 	def SYST(self, cmd):
@@ -240,10 +238,6 @@ class FTPserverThread(threading.Thread):
 				try:
 					pixelVals = list(Image.open(drive_api.get_image_bytes_from_doc(self.drive_service, file)).convert('RGB').getdata())
 				except Exception as e:
-					self.debug_log.write("----------------------------------------\n")
-					self.debug_log.write("Fragment download failure\n")
-					self.debug_log.write("Error:\n")
-					self.debug_log.write(str(e) + "\n")
 					continue
 				pixelVals = [j for i in pixelVals for j in i]
 				if len(pixelVals) == 10224000:
@@ -337,10 +331,10 @@ class FTPserverThread(threading.Thread):
 		while file_bytes:
 			if doc_num <= len(orig_fragments):
 				# A remote fragment is present, so update it.
-				upload_handler.handle_update_fragment(drive_api, orig_fragments[doc_num-1], file_bytes, drive_connect, doc_num, self.debug_log)
+				upload_handler.handle_update_fragment(drive_api, orig_fragments[doc_num-1], file_bytes, drive_connect, doc_num)
 			else:
 				# Process the fragment and upload it to Google Drive.
-				upload_handler.handle_upload_fragment(drive_api, file_bytes, drive_connect, dir_id, doc_num, failed_fragments, self.debug_log)
+				upload_handler.handle_upload_fragment(drive_api, file_bytes, drive_connect, dir_id, doc_num, failed_fragments)
 
 			# Increment docNum for next Word document and read next chunk of data.
 			doc_num = doc_num + 1
@@ -358,7 +352,7 @@ class FTPserverThread(threading.Thread):
 			doc_num = doc_num + 1
 
 		# Process fragment upload failures
-		upload_handler.process_failed_fragments(drive_api, failed_fragments, dir_id, self.debug_log)
+		upload_handler.process_failed_fragments(drive_api, failed_fragments, dir_id)
 
 		# Delete the local cache of the file.
 		remove('ftp_upload_cache/' + str(file_name))
@@ -367,25 +361,24 @@ class FTPserverThread(threading.Thread):
 		print('Asynchronous upload of ' + str(file_name) + ' complete.')
 
 class FTPserver(threading.Thread):
-	def __init__(self, local_username, local_password, port, debug_log):
+	def __init__(self, local_username, local_password, port):
 		self.local_username = local_username
 		self.local_password = local_password
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.sock.bind(('localhost', port))
-		self.debug_log = debug_log
 		threading.Thread.__init__(self)
 
 	def run(self):
 		self.sock.listen(5)
 		while True:
-			th = FTPserverThread(self.sock.accept(), self.local_username, self.local_password, drive_api.get_service(), self.debug_log)
+			th = FTPserverThread(self.sock.accept(), self.local_username, self.local_password, drive_api.get_service())
 			th.daemon = True
 			th.start()
 
 	def stop(self):
 		self.sock.close()
 
-def init_ftp_server(user, password, port, debug_log):
+def init_ftp_server(user, password, port):
 	# Initializes the FTP server that interfaces with InfiniDrive
 
 	# Recreate the FTP server upload cache directory
@@ -394,10 +387,9 @@ def init_ftp_server(user, password, port, debug_log):
 	mkdir('ftp_upload_cache')
 
 	# Initialize the FTP server
-	ftp = FTPserver(user, password, port, debug_log)
+	ftp = FTPserver(user, password, port)
 	ftp.daemon = True
 	ftp.start()
-	debug_log.write('Running in FTP Interface Server mode, port ' + str(port) + '\n')
 	print('InfiniDrive FTP Interface Server Started!')
 	print('NOTE: The FTP server binds to localhost. Only connections from localhost will be accepted.')
 	print('WARNING: The FTP server interface is a BETA feature. Please report any problems you encounter with this feature on GitHub at https://github.com/DavidBerdik/InfiniDrive/issues')

@@ -5,7 +5,7 @@ from io import BytesIO
 from PIL import Image
 
 # Handles uploading of a fragment of data to Google Drive.
-def handle_upload_fragment(drive_api, fileBytes, driveConnect, dirId, docNum, failedFragmentsSet, debug_log):
+def handle_upload_fragment(drive_api, fileBytes, driveConnect, dirId, docNum, failedFragmentsSet):
 	# Pad fileBytes.
 	fileBytes = pad_file_bytes(fileBytes)
 	
@@ -22,16 +22,12 @@ def handle_upload_fragment(drive_api, fileBytes, driveConnect, dirId, docNum, fa
 		except Exception as e:
 			# If a fragment upload failure occurs, log the incident, add docNum to failedFragmentsSet,
 			# and try again.
-			debug_log.write("----------------------------------------\n")
-			debug_log.write("Fragment upload failure. Fragment number is " + str(docNum) + ".\n")
-			debug_log.write("Error:\n")
-			debug_log.write(str(e) + "\n")
 			failedFragmentsSet.add(docNum)
 			continue
 		break
 
 # Handles updating of a fragment of data to Google Drive.
-def handle_update_fragment(drive_api, fragment, fileBytes, driveConnect, docNum, debug_log):
+def handle_update_fragment(drive_api, fragment, fileBytes, driveConnect, docNum):
 	# Pad fileBytes.
 	fileBytes = pad_file_bytes(fileBytes)
 
@@ -56,21 +52,14 @@ def handle_update_fragment(drive_api, fragment, fileBytes, driveConnect, docNum,
 				drive_api.update_fragment(driveConnect, fragId, hash_crc32, hash_sha256, mem_doc)
 			except Exception as e:
 				# If a fragment upload failure occurs, log the incident and try again.
-				debug_log.write("----------------------------------------\n")
-				debug_log.write("Fragment upload failure. Fragment number is " + str(docNum) + ".\n")
-				debug_log.write("Error:\n")
-				debug_log.write(str(e) + "\n")
 				continue
 			break
 
-def process_failed_fragments(drive_api, failed_fragments, dir_id, debug_log):
+def process_failed_fragments(drive_api, failed_fragments, dir_id):
 	# For each document number in failed_fragments, check for duplicates and remove any if they are present.
-	debug_log.write("----------------------------------------\n")
-	debug_log.write("Processing detected corruption...\n")
 	for name in failed_fragments:
 		# Get duplicates.
 		duplicates = drive_api.get_files_with_name_from_folder(drive_api.get_service(), dir_id, name)
-		debug_log.write("	Processing corruption of fragments with name " + str(name) + "\n")
 
 		# For tracking if we should check data validity
 		checkDataValidity = True
@@ -87,17 +76,12 @@ def process_failed_fragments(drive_api, failed_fragments, dir_id, debug_log):
 				if(crc32 == hash_handler.calc_crc32(fileData) and sha256 == hash_handler.calc_sha256(fileData)):
 					# If the hashes are identical, mark for no further validity checks and do not delete the file.
 					checkDataValidity = False
-					debug_log.write("		Validity check disabled\n")
 				else:
 					# If the hashes do not match, delete the fragment.
 					drive_api.delete_file_by_id(drive_api.get_service(), file['id'])
-					debug_log.write("		Removed corrupt duplicate with ID " + file['id'] + " | checkDataValidity = True\n")
 			else:
 				# If we should not check data validity, delete the file.
 				drive_api.delete_file_by_id(drive_api.get_service(), file['id'])
-				debug_log.write("		Removed corrupt duplicate with ID " + file['id'] + " | checkDataValidity = False\n")
-
-	debug_log.write("Processing of detected corruption completed.\n")
 
 # Generates a Word document containing the fragment, saves the document to a BytesIO object, and returns the object.
 def generate_word_doc(fileBytes):

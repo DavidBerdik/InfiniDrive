@@ -13,8 +13,6 @@ from tabulate import tabulate
 class InfiniDrive:
 	def __init__(self):
 		self.version = "1.0.22"
-		self.debug_log = open("log.txt", "w")
-		self.debug_log.write("Version: " + self.version + "\n\n")
 		self.progress = getpatchedprogress()
 
 		if (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload": self.upload()
@@ -24,12 +22,9 @@ class InfiniDrive:
 		elif len(sys.argv) == 4 and str(sys.argv[1]) == "update": self.update()
 		elif len(sys.argv) == 3 and str(sys.argv[1]) == "size": self.get_file_size()
 		elif len(sys.argv) >= 3 and str(sys.argv[1]) == "delete": self.delete()
-		elif len(sys.argv) == 5 and str(sys.argv[1]) == "ftp": init_ftp_server(str(sys.argv[2]), str(sys.argv[3]), int(sys.argv[4]), self.debug_log)
+		elif len(sys.argv) == 5 and str(sys.argv[1]) == "ftp": init_ftp_server(str(sys.argv[2]), str(sys.argv[3]), int(sys.argv[4]))
 		elif len(sys.argv) == 2 and str(sys.argv[1]) == "help": print_help(self.version)
 		else: print("Invalid command. Please see the 'help' command for usage instructions.")
-
-		self.debug_log.write("----------------------------------------\n")
-		self.debug_log.write("Normal termination.")
 
 	def upload(self):
 		# Get the name to use for the file.
@@ -68,12 +63,6 @@ class InfiniDrive:
 			drive_api.rename_file(drive_api.get_service(), str(sys.argv[2]), str(sys.argv[3]))
 			print('File rename complete.')
 		except Exception as e:
-			self.debug_log.write("----------------------------------------\n")
-			self.debug_log.write("File rename failure\n")
-			self.debug_log.write("Old Name: " + str(sys.argv[2]) + "\n")
-			self.debug_log.write("New Name: " + str(sys.argv[3]) + "\n")
-			self.debug_log.write("Error:\n")
-			self.debug_log.write(str(e) + "\n")
 			print('An error occurred. Please report this issue on the InfiniDrive GitHub issue tracker and upload your "log.txt" file.')
 			print('File rename failed.')
 
@@ -129,10 +118,6 @@ class InfiniDrive:
 				try:
 					pixelVals = list(Image.open(drive_api.get_image_bytes_from_doc(drive_api.get_service(), file)).convert('RGB').getdata())
 				except Exception as e:
-					self.debug_log.write("----------------------------------------\n")
-					self.debug_log.write("Fragment download failure\n")
-					self.debug_log.write("Error:\n")
-					self.debug_log.write(str(e) + "\n")
 					continue
 				pixelVals = [j for i in pixelVals for j in i]
 				if len(pixelVals) == 10224000:
@@ -228,10 +213,10 @@ class InfiniDrive:
 
 				if docNum <= len(orig_fragments):
 					# A remote fragment is present, so update it.
-					upload_handler.handle_update_fragment(drive_api, orig_fragments[docNum-1], fileBytes, driveConnect, docNum, self.debug_log)
+					upload_handler.handle_update_fragment(drive_api, orig_fragments[docNum-1], fileBytes, driveConnect, docNum)
 				else:
 					# Process the fragment and upload it to Google Drive.
-					upload_handler.handle_upload_fragment(drive_api, fileBytes, driveConnect, dirId, docNum, failedFragmentsSet, self.debug_log)
+					upload_handler.handle_upload_fragment(drive_api, fileBytes, driveConnect, dirId, docNum, failedFragmentsSet)
 
 				# Increment docNum for next Word document.
 				docNum = docNum + 1
@@ -256,10 +241,10 @@ class InfiniDrive:
 
 				if docNum <= len(orig_fragments):
 					# A remote fragment is present, so update it.
-					upload_handler.handle_update_fragment(drive_api, orig_fragments[docNum-1], fileBytes, driveConnect, docNum, self.debug_log)
+					upload_handler.handle_update_fragment(drive_api, orig_fragments[docNum-1], fileBytes, driveConnect, docNum)
 				else:
 					# Process the fragment and upload it to Google Drive.
-					upload_handler.handle_upload_fragment(drive_api, fileBytes, driveConnect, dirId, docNum, failedFragmentsSet, self.debug_log)
+					upload_handler.handle_upload_fragment(drive_api, fileBytes, driveConnect, dirId, docNum, failedFragmentsSet)
 
 				# Increment docNum for next Word document and read next chunk of data.
 				docNum = docNum + 1
@@ -278,7 +263,7 @@ class InfiniDrive:
 			docNum = docNum + 1
 
 		# Process fragment upload failures
-		upload_handler.process_failed_fragments(drive_api, failedFragmentsSet, dirId, self.debug_log)
+		upload_handler.process_failed_fragments(drive_api, failedFragmentsSet, dirId)
 
 		upBar.finish()
 
@@ -287,10 +272,6 @@ class InfiniDrive:
 			print('Verifying upload.')
 			foundFrags = len(drive_api.get_files_list_from_folder(drive_api.get_service(), dirId))
 			if(totalFrags != foundFrags):
-				self.debug_log.write("----------------------------------------\n")
-				self.debug_log.write("InfiniDrive detected upload corruption.\n")
-				self.debug_log.write("Expected Fragments: " + str(totalFrags) + "\n")
-				self.debug_log.write("Actual Fragments  : " + str(foundFrags) + "\n")
 				print('InfiniDrive has detected that your upload was corrupted. Please report this issue on the InfiniDrive GitHub issue tracker and upload your "log.txt" file.')
 
 		print('Upload complete!')
