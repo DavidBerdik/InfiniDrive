@@ -392,7 +392,6 @@ def init_ftp_server(user, password, port):
 	ftp.start()
 	print('InfiniDrive FTP Interface Server Started!')
 	print('NOTE: The FTP server binds to localhost. Only connections from localhost will be accepted.')
-	print('WARNING: The FTP server interface is a BETA feature. Please report any problems you encounter with this feature on GitHub at https://github.com/DavidBerdik/InfiniDrive/issues')
 	input('To shut down server, press enter key.\n\n')
 
 	# Enter key was pressed. Stop server and delete FTP server upload cache directory.
