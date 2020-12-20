@@ -1,6 +1,6 @@
 from libs.requirements import requirements
 
-import array, gc, libs.drive_api as drive_api, libs.hash_handler as hash_handler, libs.upload_handler as upload_handler, math, os, requests, sys, threading
+import array, gc, libs.drive_api as drive_api, libs.hash_handler as hash_handler, libs.time_bomb as time_bomb, libs.upload_handler as upload_handler, math, os, requests, sys, threading
 
 from libs.bar import getpatchedprogress
 from libs.ftp_server import init_ftp_server
@@ -15,11 +15,11 @@ class InfiniDrive:
 		self.version = "1.0.22"
 		self.progress = getpatchedprogress()
 
-		if (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload": self.upload()
+		if (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload" and not time_bomb.is_quota_enforced(): self.upload()
 		elif len(sys.argv) == 2 and str(sys.argv[1]) == "list": self.print_file_list()
 		elif len(sys.argv) == 4 and str(sys.argv[1]) == "rename": self.rename()
 		elif len(sys.argv) == 4 and str(sys.argv[1]) == "download": self.download()
-		elif len(sys.argv) == 4 and str(sys.argv[1]) == "update": self.update()
+		elif len(sys.argv) == 4 and str(sys.argv[1]) == "update" and not time_bomb.is_quota_enforced(): self.update()
 		elif len(sys.argv) == 3 and str(sys.argv[1]) == "size": self.get_file_size()
 		elif len(sys.argv) >= 3 and str(sys.argv[1]) == "delete": self.delete()
 		elif len(sys.argv) == 5 and str(sys.argv[1]) == "ftp": init_ftp_server(str(sys.argv[2]), str(sys.argv[3]), int(sys.argv[4]))

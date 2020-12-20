@@ -1,6 +1,6 @@
 # Provides an FTP Server to allow interaction with InfiniDrive through an FTP client.
 # Adapted from https://gist.github.com/risc987/184d49fa1a86e3c6c91c
-import array, gc, libs.drive_api as drive_api, libs.hash_handler as hash_handler, libs.upload_handler as upload_handler, socket, threading
+import array, gc, libs.drive_api as drive_api, libs.hash_handler as hash_handler, libs.time_bomb as time_bomb, libs.upload_handler as upload_handler, socket, threading
 
 from os import mkdir
 from os import remove
@@ -269,6 +269,11 @@ class FTPserverThread(threading.Thread):
 
 	def STOR(self, cmd):
 		# Uploads an InfiniDrive file
+		# If Google's new quota rules are being enforced, deny uploading permission and return.
+		if time_bomb.is_quota_enforced():
+			self.conn.send(b'550 As of June 1, 2021, InfiniDrive no longer permits uploads. More information: https://blog.google/products/photos/storage-policy-update/\r\n')
+			return
+		
 		# Extract the name of the file to upload from the command
 		file_name = str(cmd[5:-2].lstrip('/'))
 
