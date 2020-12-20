@@ -15,6 +15,7 @@ class InfiniDrive:
 		self.version = "1.0.22"
 		self.progress = getpatchedprogress()
 
+		time_bomb.print_quota_alert()
 		if (len(sys.argv) == 3 or len(sys.argv) == 4) and str(sys.argv[1]) == "upload" and not time_bomb.is_quota_enforced(): self.upload()
 		elif len(sys.argv) == 2 and str(sys.argv[1]) == "list": self.print_file_list()
 		elif len(sys.argv) == 4 and str(sys.argv[1]) == "rename": self.rename()

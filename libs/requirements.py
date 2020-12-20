@@ -6,7 +6,7 @@ class requirements:
 
 	def check_imports(self):
 		try:
-			import array, gc, libs.drive_api, libs.hash_handler, libs.upload_handler, math, os, os.path, pickle, requests, socket, sys, threading, zipfile
+			import array, gc, libs.drive_api, libs.hash_handler, libs.upload_handler, math, os, os.path, pickle, requests, rich, socket, sys, threading, zipfile
 
 			from apiclient.http import MediaIoBaseDownload
 			from apiclient.http import MediaIoBaseUpload

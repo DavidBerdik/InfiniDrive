@@ -22,7 +22,8 @@ class FTPserverThread(threading.Thread):
 		threading.Thread.__init__(self)
 
 	def run(self):
-		self.conn.send(b'220 Welcome to the InfiniDrive FTP Interface!\r\n')
+		self.conn.send(b'220-Welcome to the InfiniDrive FTP Interface!\r\n')
+		time_bomb.ftp_send_quota_alert(self.conn)
 		while True:
 			cmd_byte = self.conn.recv(32*1024)
 			if not cmd_byte:
@@ -61,6 +62,8 @@ class FTPserverThread(threading.Thread):
 		# Accept password input and authenticate it.
 		if self.local_username == self.input_username and self.local_password == cmd.split()[1]:
 			self.conn.send(b'230 OK.\r\n')
+			self.conn.send(b'220-Welcome to the InfiniDrive FTP Interface!\r\n')
+			time_bomb.ftp_send_quota_alert(self.conn)
 		else:
 			self.conn.send(b'530 Login incorrect.\r\n')
 
