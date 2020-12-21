@@ -1,4 +1,14 @@
 # ∞ InfiniDrive ∞
+**As of June 1, 2021, Google counts Google Docs files towards the 15GB storage quota granted to each Google account for free. Since InfiniDrive relied on Google not counting Docs towards the storage quota, it is no longer possible for the project to remain fully functional. Any InfiniDrive uploads made before this date will remain accessible, but users will be limited to performing basic file operations including renaming, downloading, querying for size, and deleting. Additionally, InfiniDrive will no longer be maintained. All pull requests and bug reports will not be accepted. The final release and recommended version of InfiniDrive for all users is InfiniDrive v1.0.22. Thank you to everyone who used and supported the InfiniDrive project during its 1.5 years of development.**
+
+**For archival purposes, this repository will permanently remain available at https://github.com/DavidBerdik/InfiniDrive and the associated README documentation for the project will be retained below.**
+
+**For more information on Google's quota changes, please see the following pages:**
+- **https://support.google.com/docs/answer/9312312**
+- **https://blog.google/products/photos/storage-policy-update/**
+
+--------------------------------------------------
+
 ```
             ,,,                         ,,,
       &@@@@@@@@@@@@@              @@@@@@@@@@@@@@
