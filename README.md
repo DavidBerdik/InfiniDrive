@@ -54,6 +54,7 @@ Although InfiniDrive is an improvement over the base64 storage approach, it is c
 
 ## Can I contribute?
 ~~Yes! If you are interested in helping build InfiniDrive, feel free to submit a pull request. Bug reports are also appreciated.~~
+
 Unfortunately, InfiniDrive is no longer maintained and therefore contributions in the form of pull requests or bug reports will not be accepted. If you have used InfiniDrive or one of our other projects and would like to show your appreciation in the form of a monetary contribution, you may do so [here](https://www.paypal.com/donate?hosted_button_id=65ULHDRQNPP9N).
 
 ## Disclaimer
