@@ -274,7 +274,7 @@ class FTPserverThread(threading.Thread):
 		# Uploads an InfiniDrive file
 		# If Google's new quota rules are being enforced, deny uploading permission and return.
 		if time_bomb.is_quota_enforced():
-			self.conn.send(b'550 As of June 1, 2021, InfiniDrive no longer permits uploads. More information: https://blog.google/products/photos/storage-policy-update/\r\n')
+			self.conn.send(b'550 As of June 1, 2021, InfiniDrive no longer permits uploads. More information: https://github.com/DavidBerdik/InfiniDrive\r\n')
 			return
 		
 		# Extract the name of the file to upload from the command
