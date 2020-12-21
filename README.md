@@ -45,7 +45,7 @@ These limitations mean that very little data can be stored in a single Doc file,
 8. After completing authentication, run `python InfiniDrive.py` again to get a list of available commands.
 
 ## InfiniDrive Weaknesses
-Although InfiniDrive is an improvement over the base64 storage approach, it is certainly not perfect. Here are some of its weaknesses. There are probably more as well. We'll try to keep this list up-to-date if/when new problems arise and old ones are fixed.
+Although InfiniDrive is an improvement over the base64 storage approach, it is certainly not perfect. Here are some of its weaknesses. There are probably more as well. This list represents the known weaknesses of InfiniDrive at the time of the project's termination.
 - Although InfiniDrive is faster than the base64 implementation, it is still slow. Perhaps this can be improved by moving Drive API interactions to a separate thread since that is the slowest component?
 - Google Drive allows for Doc files to be up to 50MB in size, but limits that size to 10MB when uploaded via the API. There used to be a workaround for this. Perhaps an attempt can be made at implementing that workaround?
 - As mentioned earlier, taking advantage of PNG compression means that the resulting images are sometimes smaller than the data we are storing. In cases where an image's size is less than the data it is storing, we could pack more data in to the image. InfiniDrive does not currently do this, meaning that we often end up with wasted space per Doc. Perhaps we can try to calculate what an image's size will be before generating it, and add more data to it if the size allows?
