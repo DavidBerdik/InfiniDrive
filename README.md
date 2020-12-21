@@ -53,7 +53,8 @@ Although InfiniDrive is an improvement over the base64 storage approach, it is c
 - InfiniDrive does not fully support error detection or correction. (**Note:** As of v1.0.3, minimal support for error detection is present to guard against Google Drive's 1x1 image bug. See [issue #17](https://github.com/DavidBerdik/InfiniDrive/issues/17#issuecomment-507069576) for more information.)
 
 ## Can I contribute?
-Yes! If you are interested in helping build InfiniDrive, feel free to submit a pull request. Bug reports are also appreciated.
+~~Yes! If you are interested in helping build InfiniDrive, feel free to submit a pull request. Bug reports are also appreciated.~~
+Unfortunately, InfiniDrive is no longer maintained and therefore contributions in the form of pull requests or bug reports will not be accepted. If you have used InfiniDrive or one of our other projects and would like to show your appreciation in the form of a monetary contribution, you may do so [here](https://www.paypal.com/donate?hosted_button_id=65ULHDRQNPP9N).
 
 ## Disclaimer
 InfiniDrive was developed as a proof-of-concept project. Although an effort has been made to ensure that any data stored using InfiniDrive will have its integrity maintained, there is no guarantee a lurking edge case did not slip through our testing. By trusting your data's integrity to InfiniDrive, you assume all responsibility if it fails.
